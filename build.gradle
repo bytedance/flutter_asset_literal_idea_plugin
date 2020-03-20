@@ -3,8 +3,12 @@ plugins {
     id 'org.jetbrains.intellij' version '0.4.16'
 }
 
+publishPlugin {
+    token intellijPublishToken
+}
+
 group 'com.ixigua'
-version '1.0-SNAPSHOT'
+version '1.1'
 
 sourceCompatibility = 1.8
 
@@ -19,9 +23,17 @@ dependencies {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version "$intellijVersion"
+    version intellijVersion
+    type 'IC'
     plugins "Dart:$dartVersion"
 }
+
+runIde {
+    // Absolute path to installed target v3.5 Android Studio to use as IDE Development Instance
+    // The "Contents" directory is macOS specific.
+    ideDirectory '/Applications/Android Studio.app/Contents'
+}
+
 patchPluginXml {
     changeNotes """
       <h1>1.0</h1>

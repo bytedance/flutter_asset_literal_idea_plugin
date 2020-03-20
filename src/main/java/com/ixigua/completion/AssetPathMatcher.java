@@ -1,7 +1,6 @@
 package com.ixigua.completion;
 
 import com.intellij.codeInsight.completion.PrefixMatcher;
-import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class AssetPathMatcher extends PrefixMatcher {
