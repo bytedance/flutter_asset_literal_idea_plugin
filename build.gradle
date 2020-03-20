@@ -19,11 +19,14 @@ dependencies {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version '2019.3.4'
+    version "$intellijVersion"
     plugins "Dart:$dartVersion"
 }
 patchPluginXml {
     changeNotes """
-      Add change notes here.<br>
-      <em>most HTML tags may be used</em>"""
+      <h1>1.0</h1>
+<ul>
+  <li> Suggest asset paths when you type a Dart string  </li>
+</ul>
+"""
 }

@@ -43,7 +43,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                protected void addCompletions(@NotNull CompletionParameters parameters, @NotNull ProcessingContext context, @NotNull CompletionResultSet result) {
                    ProgressManager.checkCanceled();
                    String text = parameters.getPosition().getText().replaceFirst(DUMMY_IDENTIFIER, "");
-                   System.out.println("asset literal prefix string " + text);
+//                   System.out.println("asset literal prefix string " + text);
                    if (text.isEmpty()) {
                        return;
                    }

@@ -1,12 +1,15 @@
 <idea-plugin>
     <id>com.ixigua.flutter_asset_iteral</id>
-    <name>FlutterAssetLiteral</name>
-    <vendor email="xigua_flutter@bytedance.com">Bytedance</vendor>
+    <name>FlutterAssetAutoCompletion</name>
+    <vendor url="https://www.ixigua.com/">ixigua.com</vendor>
 
     <description><![CDATA[
-    Add assets name suggestion to Dart string literal.
+    Suggest asset paths when you type a Dart string.<br>
+    <img src="https://i.imgur.com/kxmRfqT.gif" alt="demo"  width=480/>
     ]]></description>
 
+<!--    copy from Flutter plugin -->
+    <idea-version since-build="191.8026" until-build="193.*"/>
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
