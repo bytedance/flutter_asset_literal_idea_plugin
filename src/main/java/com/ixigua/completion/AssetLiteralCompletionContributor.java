@@ -1,6 +1,7 @@
 package com.ixigua.completion;
 
 import com.intellij.codeInsight.completion.*;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -39,6 +40,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
 
     public AssetLiteralCompletionContributor() {
            extend(CompletionType.BASIC, PlatformPatterns.psiElement(DartTokenTypes.REGULAR_STRING_PART), new CompletionProvider<CompletionParameters>() {
+
                @Override
                protected void addCompletions(@NotNull CompletionParameters parameters, @NotNull ProcessingContext context, @NotNull CompletionResultSet result) {
                    ProgressManager.checkCanceled();
@@ -48,11 +50,11 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                        return;
                    }
                    List<String> allPaths = allAssetPaths(parameters);
-                   List<String> filteredPaths = null;
+
                    if (allPaths == null) {
                        return;
                    }
-                   filteredPaths = filterPaths(allPaths, text);
+                   List<String> filteredPaths = filterPaths(allPaths, text);
                    if (filteredPaths == null) {
                        return;
                    }
@@ -70,6 +72,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
 
            });
     }
+
 
     private static  List<String> filterPaths(@NotNull List<String> paths, @NotNull String prefix) {
         if (paths.isEmpty()) {
