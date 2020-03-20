@@ -48,7 +48,11 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                        return;
                    }
                    List<String> allPaths = allAssetPaths(parameters);
-                   List<String> filteredPaths = filterPaths(allPaths, text);
+                   List<String> filteredPaths = null;
+                   if (allPaths == null) {
+                       return;
+                   }
+                   filteredPaths = filterPaths(allPaths, text);
                    if (filteredPaths == null) {
                        return;
                    }
@@ -72,8 +76,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
             return null;
         }
         AssetPathMatcher matcher = new AssetPathMatcher(prefix);
-        List<String> ret = new ArrayList<String>();
-        ret.addAll(paths);
+        List<String> ret = new ArrayList<String>(paths);
         ret.removeIf(new Predicate<String>() {
             @Override
             public boolean test(String s) {
@@ -92,7 +95,11 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         }
         // 获得 pubspec 中 assets 自动对应的信息
         Map<String, Object> pubInfo = getPubspecYamlInfo(pubspec);
+        if (pubInfo == null) {
+            return null;
+        }
         final List<String> assets = new ArrayList<String>();
+
         pubInfo.forEach(new BiConsumer<String, Object>() {
             @Override
             public void accept(String s, Object o) {
@@ -102,13 +109,13 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                 if (!(o instanceof Map)) {
                     return;
                 }
-                Object ats = ((Map<String, Object>)o).get("assets");
+                Object ats = ((Map)o).get("assets");
 //                System.out.println("assets class " + ats.getClass());
 //                System.out.println("assets in flutter " + ats + " key " + s);
                 if (!(ats instanceof List)) {
                     return;
                 }
-                assets.addAll((List)ats);
+                assets.addAll((Collection<String>) ats);
             }
         });
 //        System.out.println("all asssets " + assets);
@@ -119,6 +126,9 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
             public void accept(String s) {
                 VirtualFile parent = pubspec.getParent();
                 VirtualFile child = parent.findChild(s);
+                if (child == null) {
+                    return;
+                }
                 String parentPath = parent.getPath() + "/";
 //                System.out.println("find assets file " + child);
                 if (!child.exists()) {
@@ -195,7 +205,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                     data = Pair.create(currentTimestamp, pubspecYamlInfo);
                     pubspecYamlFile.putUserData(MOD_STAMP_TO_PUBSPEC_NAME, data);
                 }
-            } catch (IOException var7) {
+            } catch (IOException ignored) {
             }
         }
 
@@ -216,7 +226,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         });
 
         try {
-            return (Map<String, Object>)yaml.load(pubspecYamlFileContents);
+            return yaml.load(pubspecYamlFileContents);
         } catch (Exception var3) {
             return null;
         }

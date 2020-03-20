@@ -1,11 +1,7 @@
 package com.ixigua.completion;
 
 import com.intellij.codeInsight.completion.PrefixMatcher;
-import com.intellij.util.text.EditDistance;
-import org.assertj.core.annotations.NonNull;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public class AssetPathMatcher extends PrefixMatcher {
 
