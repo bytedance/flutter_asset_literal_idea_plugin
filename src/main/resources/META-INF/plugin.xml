@@ -1,0 +1,23 @@
+<idea-plugin>
+    <id>com.ixigua.flutter_asset_iteral</id>
+    <name>FlutterAssetLiteral</name>
+    <vendor email="xigua_flutter@bytedance.com">Bytedance</vendor>
+
+    <description><![CDATA[
+    Add assets name suggestion to Dart string literal.
+    ]]></description>
+
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>Dart</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <completion.contributor language="Dart"
+                                implementationClass="com.ixigua.completion.AssetLiteralCompletionContributor" order="first"/>
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+</idea-plugin>
