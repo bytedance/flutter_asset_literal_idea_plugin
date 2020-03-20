@@ -23,12 +23,12 @@ public class AssetPathMatcher extends PrefixMatcher {
             char currentPrefixChar = myPrefix.charAt(currentPrefixCharIndex);
             if (c == currentPrefixChar) {
                 currentPrefixCharIndex += 1;
-                System.out.println("match " + c + " at " + currentPrefixCharIndex);
+//                System.out.println("match " + c + " at " + currentPrefixCharIndex);
             }
         }
         boolean matched = currentPrefixCharIndex >= myPrefix.length();
         if (matched) {
-            System.out.println("prefix " + myPrefix + " matched " + name);
+//            System.out.println("prefix " + myPrefix + " matched " + name);
         }
         return matched;
     }
