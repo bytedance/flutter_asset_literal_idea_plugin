@@ -1,7 +1,6 @@
 package com.ixigua.completion;
 
 import com.intellij.codeInsight.completion.*;
-import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -62,8 +61,9 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                        return;
                    }
 
+                   
                    List<String> sortedPaths = sortedAssetPaths(text, filteredPaths);
-                   result = result.withPrefixMatcher(new AssetPathMatcher(text));
+                   result = result.withPrefixMatcher(new AssetPathMatcher(text)).caseInsensitive();
                    for (String path :
                            sortedPaths) {
                        result.addElement(LookupElementBuilder.create(path));
