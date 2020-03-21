@@ -143,7 +143,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
             @Override
             public void accept(String s) {
                 VirtualFile parent = pubspec.getParent();
-                VirtualFile child = parent.findChild(s);
+                VirtualFile child = parent.findFileByRelativePath(s);
                 if (child == null) {
                     return;
                 }
@@ -175,7 +175,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
     private static List<String> flattenRelativePaths(@NotNull VirtualFile directory, @NotNull String relativeTo) {
         List<String> ret = new ArrayList<String>();
         if (!directory.isDirectory()) {
-            ret.add(directory.getPath());
+            ret.add(directory.getPath().replaceFirst(relativeTo, ""));
             return ret;
         }
 
