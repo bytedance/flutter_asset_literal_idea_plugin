@@ -2,6 +2,7 @@ package com.ixigua.completion;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.progress.ProgressManager;
@@ -35,6 +36,8 @@ import static com.intellij.codeInsight.completion.CompletionUtilCore.DUMMY_IDENT
 
 public class AssetLiteralCompletionContributor extends CompletionContributor {
 
+    private static final Logger LOG = Logger.getInstance(AssetLiteralCompletionContributor.class);
+
     private static final Key<Pair<Long, Map<String, Object>>> MOD_STAMP_TO_PUBSPEC_NAME = Key.create("MOD_STAMP_TO_PUBSPEC_NAME");
 
     public AssetLiteralCompletionContributor() {
@@ -44,20 +47,24 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                protected void addCompletions(@NotNull CompletionParameters parameters, @NotNull ProcessingContext context, @NotNull CompletionResultSet result) {
                    ProgressManager.checkCanceled();
                    String text = parameters.getPosition().getText().replaceFirst(DUMMY_IDENTIFIER, "");
-//                   System.out.println("asset literal prefix string " + text);
+                   LOG.info("asset literal prefix string " + text);
                    if (text.isEmpty()) {
+                       LOG.error("dart string is empty");
                        return;
                    }
                    List<String> allPaths = allAssetPaths(parameters);
 
                    if (allPaths == null) {
+                       LOG.error("all asset path list is null");
                        return;
                    }
                    List<String> filteredPaths = filterPaths(allPaths, text);
                    if (filteredPaths == null) {
+                       LOG.error("filtered path list is null");
                        return;
                    }
                    if (filteredPaths.isEmpty()) {
+                       LOG.error("filtered path list is empty");
                        return;
                    }
 
@@ -66,13 +73,19 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                    result = result.withPrefixMatcher(new AssetPathMatcher(text)).caseInsensitive();
                    for (String path :
                            sortedPaths) {
-                       result.addElement(LookupElementBuilder.create(path));
+                       result.addElement(LookupElementBuilder.create(path).withCaseSensitivity(false));
                    }
+                   
                }
 
            });
     }
 
+    @Nullable
+    @Override
+    public AutoCompletionDecision handleAutoCompletionPossibility(@NotNull AutoCompletionContext context) {
+        return super.handleAutoCompletionPossibility(context);
+    }
 
     private static  List<String> filterPaths(@NotNull List<String> paths, @NotNull String prefix) {
         if (paths.isEmpty()) {
@@ -92,13 +105,15 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
     private static List<String> allAssetPaths(@NotNull CompletionParameters parameters) {
         // 找到 pubspec 文件
         VirtualFile pubspec =  PubspecYamlUtil.findPubspecYamlFile(parameters.getPosition().getProject(), parameters.getOriginalFile().getVirtualFile());
-//        System.out.println("pubspec file " + pubspec);
+        LOG.info("pubspec file " + pubspec);
         if (pubspec == null) {
+            LOG.error("pub spec file is null");
             return new ArrayList<String>();
         }
         // 获得 pubspec 中 assets 自动对应的信息
         Map<String, Object> pubInfo = getPubspecYamlInfo(pubspec);
         if (pubInfo == null) {
+            LOG.error("pub spec info is null");
             return null;
         }
         final List<String> assets = new ArrayList<String>();
@@ -113,15 +128,15 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                     return;
                 }
                 Object ats = ((Map)o).get("assets");
-//                System.out.println("assets class " + ats.getClass());
-//                System.out.println("assets in flutter " + ats + " key " + s);
+                LOG.info("assets class " + ats.getClass());
+                LOG.info("assets in flutter " + ats + " key " + s);
                 if (!(ats instanceof List)) {
                     return;
                 }
                 assets.addAll((Collection<String>) ats);
             }
         });
-//        System.out.println("all asssets " + assets);
+        LOG.info("all asssets " + assets);
         // 拿到 assets 对应的所有文件
         ArrayList<String> ret = new ArrayList<String>();
         assets.forEach(new Consumer<String>() {
@@ -133,7 +148,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                     return;
                 }
                 String parentPath = parent.getPath() + "/";
-//                System.out.println("find assets file " + child);
+                LOG.info("find assets file " + child);
                 if (!child.exists()) {
                     return;
                 }
@@ -141,7 +156,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
             }
         });
 
-//        System.out.println("find all asset relative paths " + ret);
+        LOG.info("find all asset relative paths " + ret);
         return ret;
     }
 

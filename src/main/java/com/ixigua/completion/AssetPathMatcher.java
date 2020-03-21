@@ -1,9 +1,12 @@
 package com.ixigua.completion;
 
 import com.intellij.codeInsight.completion.PrefixMatcher;
+import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;
 
 public class AssetPathMatcher extends PrefixMatcher {
+
+    private static final Logger LOG = Logger.getInstance(AssetPathMatcher.class);
 
     protected AssetPathMatcher(String prefix) {
         super(prefix);
@@ -23,12 +26,12 @@ public class AssetPathMatcher extends PrefixMatcher {
             char currentPrefixChar = Character.toLowerCase(getPrefix().charAt(currentPrefixCharIndex));
             if (Character.toLowerCase(c) == currentPrefixChar) {
                 currentPrefixCharIndex += 1;
-//                System.out.println("match " + c + " at " + i);
+                LOG.info("match " + c + " at " + i);
             }
         }
         boolean matched = currentPrefixCharIndex >= getPrefix().length();
         if (matched) {
-//            System.out.println("prefix " + getPrefix() + " matched " + name);
+            LOG.info("prefix " + getPrefix() + " matched " + name);
         }
         return matched;
     }
