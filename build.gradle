@@ -8,7 +8,7 @@ publishPlugin {
 }
 
 group 'com.ixigua'
-version '1.1.3'
+version '1.1.4'
 
 sourceCompatibility = 1.8
 
@@ -35,7 +35,12 @@ runIde {
 }
 
 patchPluginXml {
-    changeNotes """   
+    changeNotes """  
+    <h1>1.1.4</h1>
+    <ul>
+      <li> supports assets in lib/. (note: you must config their name in pubspec asset section, e.g. "assets: - test.png" )  </li>
+      <li> supports assets in dependencies. (note: you must config their name in pubspec asset section, e.g. "assets: - packages/fancy_images/image_1.png", here a package named fancy_image have image_1.png )  </li>
+    </ul>  
     <h1>1.1.3</h1>
     <ul>
       <li> filter null asset path. (e.g. "assets: - ")  </li>
