@@ -13,6 +13,19 @@ public class AssetPathMatcher extends PrefixMatcher {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof AssetPathMatcher) {
+            return obj.hashCode() == hashCode();
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return getPrefix().hashCode() ^ 287936;
+    }
+
+    @Override
     public boolean prefixMatches(@NotNull String name) {
         if (name.isEmpty()) {
             return false;

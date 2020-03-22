@@ -8,7 +8,7 @@ publishPlugin {
 }
 
 group 'com.ixigua'
-version '1.2.0'
+version '1.2.1'
 
 sourceCompatibility = 1.8
 
@@ -36,6 +36,10 @@ runIde {
 
 patchPluginXml {
     changeNotes """  
+    <h1>1.2.1</h1>
+    <ul>
+      <li> fix bug: lookup string is lowercase </li>
+    </ul>
     <h1>1.2.0</h1>
     <ul>
       <li> supports asset preview </li>
