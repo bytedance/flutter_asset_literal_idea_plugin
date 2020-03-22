@@ -88,10 +88,10 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                                Icon icon = IconUtil.scale(imageIcon, null,scale) ;
                                result.addElement(LookupElementBuilder.create(filePair.first).withIcon(icon).withCaseSensitivity(false));
                            } catch (IOException e) {
-                               result.addElement(LookupElementBuilder.create(filePair.first).withCaseSensitivity(false));
+                               LOG.error("lookup element add icon failed " + e);
                            }
                        }
-
+                       result.addElement(LookupElementBuilder.create(filePair.first).withCaseSensitivity(false));
                    }
                    
                }
