@@ -52,13 +52,13 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                        LOG.error("dart string is empty");
                        return;
                    }
-                   List<String> allPaths = allAssetPaths(parameters);
+                   List<Pair<String, String>> allPaths = allAssetPaths(parameters);
 
                    if (allPaths == null) {
                        LOG.error("all asset path list is null");
                        return;
                    }
-                   List<String> filteredPaths = filterPaths(allPaths, text);
+                   List<Pair<String, String>> filteredPaths = filterPaths(allPaths, text);
                    if (filteredPaths == null) {
                        LOG.error("filtered path list is null");
                        return;
@@ -69,11 +69,11 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                    }
 
                    
-                   List<String> sortedPaths = sortedAssetPaths(text, filteredPaths);
+                   List<Pair<String, String>> sortedPaths = sortedAssetPaths(text, filteredPaths);
                    result = result.withPrefixMatcher(new AssetPathMatcher(text)).caseInsensitive();
-                   for (String path :
+                   for (Pair<String, String> pathPair :
                            sortedPaths) {
-                       result.addElement(LookupElementBuilder.create(path).withCaseSensitivity(false));
+                       result.addElement(LookupElementBuilder.create(pathPair.first).withCaseSensitivity(false));
                    }
                    
                }
@@ -87,28 +87,28 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         return super.handleAutoCompletionPossibility(context);
     }
 
-    private static  List<String> filterPaths(@NotNull List<String> paths, @NotNull String prefix) {
+    private static  List<Pair<String, String>> filterPaths(@NotNull List<Pair<String, String>> paths, @NotNull String prefix) {
         if (paths.isEmpty()) {
             return null;
         }
         AssetPathMatcher matcher = new AssetPathMatcher(prefix);
-        List<String> ret = new ArrayList<String>(paths);
-        ret.removeIf(new Predicate<String>() {
+        List<Pair<String, String>> ret = new ArrayList<Pair<String, String>>(paths);
+        ret.removeIf(new Predicate<Pair<String, String>>() {
             @Override
-            public boolean test(String s) {
-                return !matcher.prefixMatches(s);
+            public boolean test(Pair<String, String> s) {
+                return !matcher.prefixMatches(s.first);
             }
         });
         return ret;
     }
 
-    private static List<String> allAssetPaths(@NotNull CompletionParameters parameters) {
+    private static List<Pair<String, String>> allAssetPaths(@NotNull CompletionParameters parameters) {
         // 找到 pubspec 文件
         VirtualFile pubspec =  PubspecYamlUtil.findPubspecYamlFile(parameters.getPosition().getProject(), parameters.getOriginalFile().getVirtualFile());
         LOG.info("pubspec file " + pubspec);
         if (pubspec == null) {
             LOG.error("pub spec file is null");
-            return new ArrayList<String>();
+            return null;
         }
         // 获得 pubspec 中 assets 自动对应的信息
         Map<String, Object> pubInfo = getPubspecYamlInfo(pubspec);
@@ -133,17 +133,29 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                 if (!(ats instanceof List)) {
                     return;
                 }
+                ((List) ats).removeIf(new Predicate() {
+                    @Override
+                    public boolean test(Object o) {
+                        return o == null;
+                    }
+                });
                 assets.addAll((Collection<String>) ats);
             }
         });
         LOG.info("all asssets " + assets);
         // 拿到 assets 对应的所有文件
-        ArrayList<String> ret = new ArrayList<String>();
+        ArrayList<Pair<String, String>> ret = new ArrayList<Pair<String, String>>();
         assets.forEach(new Consumer<String>() {
             @Override
             public void accept(String s) {
                 VirtualFile parent = pubspec.getParent();
-                VirtualFile child = parent.findFileByRelativePath(s);
+                VirtualFile child;
+                try {
+                    child = parent.findFileByRelativePath(s);
+                } catch (Exception e) {
+                    LOG.error(e);
+                    return;
+                }
                 if (child == null) {
                     return;
                 }
@@ -160,22 +172,22 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         return ret;
     }
 
-    private static List<String> sortedAssetPaths(String prefix, List<String> paths) {
-        paths.sort(new Comparator<String>() {
+    private static List<Pair<String, String>> sortedAssetPaths(String prefix, List<Pair<String, String>> paths) {
+        paths.sort(new Comparator<Pair<String, String>>() {
             @Override
-            public int compare(String o1, String o2) {
-                int o1d = EditDistance.levenshtein(prefix, o1, false);
-                int o2d = EditDistance.levenshtein(prefix, o2, false);
+            public int compare(Pair<String, String> o1, Pair<String, String> o2) {
+                int o1d = EditDistance.levenshtein(prefix, o1.first, false);
+                int o2d = EditDistance.levenshtein(prefix, o2.first, false);
                 return o1d - o2d;
             }
         });
         return paths;
     }
 
-    private static List<String> flattenRelativePaths(@NotNull VirtualFile directory, @NotNull String relativeTo) {
-        List<String> ret = new ArrayList<String>();
+    private static List<Pair<String, String>> flattenRelativePaths(@NotNull VirtualFile directory, @NotNull String relativeTo) {
+        List<Pair<String, String>> ret = new ArrayList<Pair<String, String>>();
         if (!directory.isDirectory()) {
-            ret.add(directory.getPath().replaceFirst(relativeTo, ""));
+            ret.add(new Pair<>(directory.getPath().replaceFirst(relativeTo, ""), directory.getPath()));
             return ret;
         }
 
@@ -191,7 +203,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                 if (file.getName().equalsIgnoreCase(".DS_Store")) {
                     return true;
                 }
-                ret.add(file.getPath().replaceFirst(relativeTo, ""));
+                ret.add(new Pair<>(file.getPath().replaceFirst(relativeTo, ""), file.getPath()));
                 return true;
             }
         });
