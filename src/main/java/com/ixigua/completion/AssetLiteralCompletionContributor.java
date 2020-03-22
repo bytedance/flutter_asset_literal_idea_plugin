@@ -1,7 +1,9 @@
 package com.ixigua.completion;
 
 import com.intellij.codeInsight.completion.*;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.codeInsight.lookup.LookupElementWeigher;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -74,7 +76,8 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
 
                    
                    List<Pair<String, VirtualFile>> sortedPaths = sortedAssetPaths(text, filteredPaths);
-                   result = result.withPrefixMatcher(new AssetPathMatcher(text)).caseInsensitive();
+                   LOG.info("all sorted asset paths " + sortedPaths);
+                   result = result.withPrefixMatcher(new PlainPrefixMatcher(text, false)).caseInsensitive();
                    for (Pair<String, VirtualFile> filePair :
                            sortedPaths) {
                        ProgressManager.checkCanceled();
@@ -86,12 +89,14 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                                float targetHeight = 32;
                                float scale = targetHeight / imageIcon.getIconHeight();
                                Icon icon = IconUtil.scale(imageIcon, null,scale) ;
-                               result.addElement(LookupElementBuilder.create(filePair.first).withIcon(icon).withCaseSensitivity(false));
+                               result.addElement(LookupElementBuilder.create(filePair.first).withIcon(icon));
                            } catch (IOException e) {
                                LOG.error("lookup element add icon failed " + e);
+                               result.addElement(LookupElementBuilder.create(filePair.first));
                            }
+                       } else {
+                           result.addElement(LookupElementBuilder.create(filePair.first));
                        }
-                       result.addElement(LookupElementBuilder.create(filePair.first).withCaseSensitivity(false));
                    }
                    
                }
