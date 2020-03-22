@@ -4,7 +4,7 @@ plugins {
 }
 
 publishPlugin {
-    token intellijPublishToken
+    token System.getenv("ORG_GRADLE_PROJECT_intellijPublishToken")
 }
 
 group 'com.ixigua'
@@ -36,6 +36,11 @@ runIde {
 
 patchPluginXml {
     changeNotes """   
+    <h1>1.1.3</h1>
+    <ul>
+      <li> filter null asset path. (e.g. "assets: - ")  </li>
+      <li> add logo  </li>
+    </ul> 
     <h1>1.1.2</h1>
     <ul>
       <li> fix bug: no completion when pubspec contains multilevel directory path. (e.g. "- assets/images/")  </li>
