@@ -148,6 +148,9 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         assets.forEach(new Consumer<String>() {
             @Override
             public void accept(String s) {
+                if (s == null) {
+                    return;
+                }
                 VirtualFile parent = pubspec.getParent();
                 VirtualFile child;
                 try {
@@ -156,10 +159,27 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                     LOG.error(e);
                     return;
                 }
+                String parentPath = parent.getPath() + "/";
                 if (child == null) {
+                    // Flutter 支持在 pubspec 中指定 lib 文件夹下的文件作为资源文件（文件必须直接放在 lib 文件夹下，不能放在 lib 的子文件夹下）
+                    child = parent.findFileByRelativePath("lib/" + s);
+                    parentPath = parent.getPath() + "/lib/";
+                }
+                if (child == null) {
+                    // Flutter 还支持以 packages/{xx_lib}/yy.png 模式引用子库的资源，如果是这种case，我们暂时没法确定文件是否真实存在，直接算作候选词条
+                    String[] splited = s.split("/");
+                    if (splited.length < 3) {
+                        return;
+                    }
+                    if (!splited[0].contentEquals("packages")) {
+                        return;
+                    }
+                    if (splited[1].isEmpty()) {
+                        return;
+                    }
+                    ret.add(Pair.create(s, null));
                     return;
                 }
-                String parentPath = parent.getPath() + "/";
                 LOG.info("find assets file " + child);
                 if (!child.exists()) {
                     return;
