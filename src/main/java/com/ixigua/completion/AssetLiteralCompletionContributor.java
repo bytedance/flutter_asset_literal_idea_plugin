@@ -108,16 +108,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         if (paths.isEmpty()) {
             return null;
         }
-        AssetPathMatcher matcher = new AssetPathMatcher(prefix);
-        List<Pair<String, VirtualFile>> ret = new ArrayList<Pair<String, VirtualFile>>(paths);
-        ret.removeIf(new Predicate<Pair<String, VirtualFile>>() {
-            @Override
-            public boolean test(Pair<String, VirtualFile> s) {
-                ProgressManager.checkCanceled();
-                return !matcher.prefixMatches(s.first);
-            }
-        });
-        return ret;
+        return paths;
     }
 
     private static List<Pair<String, VirtualFile>> allAssetPaths(@NotNull CompletionParameters parameters) {
