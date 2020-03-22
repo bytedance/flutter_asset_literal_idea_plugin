@@ -81,12 +81,6 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
            });
     }
 
-    @Nullable
-    @Override
-    public AutoCompletionDecision handleAutoCompletionPossibility(@NotNull AutoCompletionContext context) {
-        return super.handleAutoCompletionPossibility(context);
-    }
-
     private static  List<Pair<String, String>> filterPaths(@NotNull List<Pair<String, String>> paths, @NotNull String prefix) {
         if (paths.isEmpty()) {
             return null;
@@ -96,6 +90,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         ret.removeIf(new Predicate<Pair<String, String>>() {
             @Override
             public boolean test(Pair<String, String> s) {
+                ProgressManager.checkCanceled();
                 return !matcher.prefixMatches(s.first);
             }
         });
@@ -121,6 +116,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         pubInfo.forEach(new BiConsumer<String, Object>() {
             @Override
             public void accept(String s, Object o) {
+                ProgressManager.checkCanceled();
                 if (!s.equalsIgnoreCase("flutter")) {
                     return;
                 }
@@ -136,6 +132,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                 ((List) ats).removeIf(new Predicate() {
                     @Override
                     public boolean test(Object o) {
+                        ProgressManager.checkCanceled();
                         return o == null;
                     }
                 });
@@ -148,6 +145,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         assets.forEach(new Consumer<String>() {
             @Override
             public void accept(String s) {
+                ProgressManager.checkCanceled();
                 if (s == null) {
                     return;
                 }
@@ -214,6 +212,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         VirtualFileVisitor.Result result = VfsUtilCore.visitChildrenRecursively(directory, new VirtualFileVisitor<Object>() {
             @Override
             public boolean visitFile(@NotNull VirtualFile file) {
+                ProgressManager.checkCanceled();
                 if (file.isDirectory()) {
                     return true;
                 }
