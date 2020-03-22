@@ -6,6 +6,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VFileProperty;
@@ -13,6 +14,8 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
 import com.intellij.patterns.PlatformPatterns;
+import com.intellij.util.IconUtil;
+import com.intellij.util.IconUtil.IconSizeWrapper;
 import com.intellij.util.ProcessingContext;
 import com.intellij.util.text.EditDistance;
 import com.jetbrains.lang.dart.DartTokenTypes;
@@ -26,6 +29,7 @@ import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 import org.yaml.snakeyaml.resolver.Resolver;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -52,13 +56,13 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                        LOG.error("dart string is empty");
                        return;
                    }
-                   List<Pair<String, String>> allPaths = allAssetPaths(parameters);
+                   List<Pair<String, VirtualFile>> allPaths = allAssetPaths(parameters);
 
                    if (allPaths == null) {
                        LOG.error("all asset path list is null");
                        return;
                    }
-                   List<Pair<String, String>> filteredPaths = filterPaths(allPaths, text);
+                   List<Pair<String, VirtualFile>> filteredPaths = filterPaths(allPaths, text);
                    if (filteredPaths == null) {
                        LOG.error("filtered path list is null");
                        return;
@@ -69,11 +73,25 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                    }
 
                    
-                   List<Pair<String, String>> sortedPaths = sortedAssetPaths(text, filteredPaths);
+                   List<Pair<String, VirtualFile>> sortedPaths = sortedAssetPaths(text, filteredPaths);
                    result = result.withPrefixMatcher(new AssetPathMatcher(text)).caseInsensitive();
-                   for (Pair<String, String> pathPair :
+                   for (Pair<String, VirtualFile> filePair :
                            sortedPaths) {
-                       result.addElement(LookupElementBuilder.create(pathPair.first).withCaseSensitivity(false));
+                       ProgressManager.checkCanceled();
+                       VirtualFile file = filePair.second;
+                       if (file != null) {
+                           try {
+                               byte[] data = file.contentsToByteArray();
+                               ImageIcon imageIcon = new ImageIcon(data);
+                               float targetHeight = 32;
+                               float scale = targetHeight / imageIcon.getIconHeight();
+                               Icon icon = IconUtil.scale(imageIcon, null,scale) ;
+                               result.addElement(LookupElementBuilder.create(filePair.first).withIcon(icon).withCaseSensitivity(false));
+                           } catch (IOException e) {
+                               result.addElement(LookupElementBuilder.create(filePair.first).withCaseSensitivity(false));
+                           }
+                       }
+
                    }
                    
                }
@@ -81,15 +99,15 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
            });
     }
 
-    private static  List<Pair<String, String>> filterPaths(@NotNull List<Pair<String, String>> paths, @NotNull String prefix) {
+    private static  List<Pair<String, VirtualFile>> filterPaths(@NotNull List<Pair<String, VirtualFile>> paths, @NotNull String prefix) {
         if (paths.isEmpty()) {
             return null;
         }
         AssetPathMatcher matcher = new AssetPathMatcher(prefix);
-        List<Pair<String, String>> ret = new ArrayList<Pair<String, String>>(paths);
-        ret.removeIf(new Predicate<Pair<String, String>>() {
+        List<Pair<String, VirtualFile>> ret = new ArrayList<Pair<String, VirtualFile>>(paths);
+        ret.removeIf(new Predicate<Pair<String, VirtualFile>>() {
             @Override
-            public boolean test(Pair<String, String> s) {
+            public boolean test(Pair<String, VirtualFile> s) {
                 ProgressManager.checkCanceled();
                 return !matcher.prefixMatches(s.first);
             }
@@ -97,7 +115,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         return ret;
     }
 
-    private static List<Pair<String, String>> allAssetPaths(@NotNull CompletionParameters parameters) {
+    private static List<Pair<String, VirtualFile>> allAssetPaths(@NotNull CompletionParameters parameters) {
         // 找到 pubspec 文件
         VirtualFile pubspec =  PubspecYamlUtil.findPubspecYamlFile(parameters.getPosition().getProject(), parameters.getOriginalFile().getVirtualFile());
         LOG.info("pubspec file " + pubspec);
@@ -141,7 +159,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         });
         LOG.info("all asssets " + assets);
         // 拿到 assets 对应的所有文件
-        ArrayList<Pair<String, String>> ret = new ArrayList<Pair<String, String>>();
+        ArrayList<Pair<String, VirtualFile>> ret = new ArrayList<Pair<String, VirtualFile>>();
         assets.forEach(new Consumer<String>() {
             @Override
             public void accept(String s) {
@@ -150,18 +168,24 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                     return;
                 }
                 VirtualFile parent = pubspec.getParent();
-                VirtualFile child;
+                VirtualFile child = null;
                 try {
                     child = parent.findFileByRelativePath(s);
                 } catch (Exception e) {
-                    LOG.error(e);
-                    return;
+                    LOG.error("find normal asset failed " + e);
                 }
-                String parentPath = parent.getPath() + "/";
+
                 if (child == null) {
-                    // Flutter 支持在 pubspec 中指定 lib 文件夹下的文件作为资源文件（文件必须直接放在 lib 文件夹下，不能放在 lib 的子文件夹下）
-                    child = parent.findFileByRelativePath("lib/" + s);
-                    parentPath = parent.getPath() + "/lib/";
+                    VirtualFile libDirectory = parent.findFileByRelativePath("lib/");
+                    if (libDirectory != null) {
+                        // Flutter 支持在 pubspec 中指定 lib 文件夹下的文件作为资源文件（文件必须直接放在 lib 文件夹下，不能放在 lib 的子文件夹下）
+                        try {
+                            child = libDirectory.findFileByRelativePath(s);
+                            parent = libDirectory;
+                        } catch (Exception e) {
+                            LOG.error("find lib child asset failed " + e);
+                        }
+                    }
                 }
                 if (child == null) {
                     // Flutter 还支持以 packages/{xx_lib}/yy.png 模式引用子库的资源，如果是这种case，我们暂时没法确定文件是否真实存在，直接算作候选词条
@@ -182,7 +206,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                 if (!child.exists()) {
                     return;
                 }
-                ret.addAll(flattenRelativePaths(child, parentPath));
+                ret.addAll(flattenRelativePaths(child, parent));
             }
         });
 
@@ -190,10 +214,10 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         return ret;
     }
 
-    private static List<Pair<String, String>> sortedAssetPaths(String prefix, List<Pair<String, String>> paths) {
-        paths.sort(new Comparator<Pair<String, String>>() {
+    private static List<Pair<String, VirtualFile>> sortedAssetPaths(String prefix, List<Pair<String, VirtualFile>> paths) {
+        paths.sort(new Comparator<Pair<String, VirtualFile>>() {
             @Override
-            public int compare(Pair<String, String> o1, Pair<String, String> o2) {
+            public int compare(Pair<String, VirtualFile> o1, Pair<String, VirtualFile> o2) {
                 int o1d = EditDistance.levenshtein(prefix, o1.first, false);
                 int o2d = EditDistance.levenshtein(prefix, o2.first, false);
                 return o1d - o2d;
@@ -202,10 +226,10 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         return paths;
     }
 
-    private static List<Pair<String, String>> flattenRelativePaths(@NotNull VirtualFile directory, @NotNull String relativeTo) {
-        List<Pair<String, String>> ret = new ArrayList<Pair<String, String>>();
+    private static List<Pair<String, VirtualFile>> flattenRelativePaths(@NotNull VirtualFile directory, @NotNull VirtualFile relativeTo) {
+        List<Pair<String, VirtualFile>> ret = new ArrayList<Pair<String, VirtualFile>>();
         if (!directory.isDirectory()) {
-            ret.add(new Pair<>(directory.getPath().replaceFirst(relativeTo, ""), directory.getPath()));
+            ret.add(new Pair<String, VirtualFile>(directory.getPath().replaceFirst(relativeTo.getPath() + "/", ""), directory));
             return ret;
         }
 
@@ -222,7 +246,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                 if (file.getName().equalsIgnoreCase(".DS_Store")) {
                     return true;
                 }
-                ret.add(new Pair<>(file.getPath().replaceFirst(relativeTo, ""), file.getPath()));
+                ret.add(new Pair<String, VirtualFile>(file.getPath().replaceFirst(relativeTo.getPath() + "/", ""), file));
                 return true;
             }
         });
