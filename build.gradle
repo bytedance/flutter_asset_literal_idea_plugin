@@ -19,6 +19,7 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
+    compile group: 'org.apache.xmlgraphics', name: 'batik-transcoder', version: '1.7'
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/

@@ -1,14 +1,11 @@
 package com.ixigua.completion;
 
 import com.intellij.codeInsight.completion.*;
-import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.codeInsight.lookup.LookupElementWeigher;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VFileProperty;
@@ -17,9 +14,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.util.IconUtil;
-import com.intellij.util.IconUtil.IconSizeWrapper;
 import com.intellij.util.ProcessingContext;
 import com.intellij.util.text.EditDistance;
+import com.ixigua.completion.svg.SVGActivator;
 import com.jetbrains.lang.dart.DartTokenTypes;
 import com.jetbrains.lang.dart.util.PubspecYamlUtil;
 import org.jetbrains.annotations.NotNull;
@@ -31,8 +28,13 @@ import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 import org.yaml.snakeyaml.resolver.Resolver;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -43,72 +45,71 @@ import static com.intellij.codeInsight.completion.CompletionUtilCore.DUMMY_IDENT
 public class AssetLiteralCompletionContributor extends CompletionContributor {
 
     private static final Logger LOG = Logger.getInstance(AssetLiteralCompletionContributor.class);
+    private final SVGActivator svgActivator = new SVGActivator();
 
     private static final Key<Pair<Long, Map<String, Object>>> MOD_STAMP_TO_PUBSPEC_NAME = Key.create("MOD_STAMP_TO_PUBSPEC_NAME");
 
     public AssetLiteralCompletionContributor() {
-           extend(CompletionType.BASIC, PlatformPatterns.psiElement(DartTokenTypes.REGULAR_STRING_PART), new CompletionProvider<CompletionParameters>() {
+        svgActivator.activate();
+        extend(CompletionType.BASIC, PlatformPatterns.psiElement(DartTokenTypes.REGULAR_STRING_PART), new CompletionProvider<CompletionParameters>() {
 
-               @Override
-               protected void addCompletions(@NotNull CompletionParameters parameters, @NotNull ProcessingContext context, @NotNull CompletionResultSet result) {
-                   ProgressManager.checkCanceled();
-                   String text = parameters.getPosition().getText().replaceFirst(DUMMY_IDENTIFIER, "");
-                   LOG.info("asset literal prefix string " + text);
-                   if (text.isEmpty()) {
-                       LOG.error("dart string is empty");
-                       return;
-                   }
-                   List<Pair<String, VirtualFile>> allPaths = allAssetPaths(parameters);
+           @Override
+           protected void addCompletions(@NotNull CompletionParameters parameters, @NotNull ProcessingContext context, @NotNull CompletionResultSet result) {
+               ProgressManager.checkCanceled();
+               String text = parameters.getPosition().getText().replaceFirst(DUMMY_IDENTIFIER, "");
+               LOG.info("asset literal prefix string " + text);
+               if (text.isEmpty()) {
+                   LOG.error("dart string is empty");
+                   return;
+               }
+               List<Pair<String, VirtualFile>> allPaths = allAssetPaths(parameters);
 
-                   if (allPaths == null) {
-                       LOG.error("all asset path list is null");
-                       return;
-                   }
-                   List<Pair<String, VirtualFile>> filteredPaths = filterPaths(allPaths, text);
-                   if (filteredPaths == null) {
-                       LOG.error("filtered path list is null");
-                       return;
-                   }
-                   if (filteredPaths.isEmpty()) {
-                       LOG.error("filtered path list is empty");
-                       return;
-                   }
-
-                   
-                   List<Pair<String, VirtualFile>> sortedPaths = sortedAssetPaths(text, filteredPaths);
-                   LOG.info("all sorted asset paths " + sortedPaths);
-                   result = result.withPrefixMatcher(new PlainPrefixMatcher(text, false)).caseInsensitive();
-                   for (Pair<String, VirtualFile> filePair :
-                           sortedPaths) {
-                       ProgressManager.checkCanceled();
-                       VirtualFile file = filePair.second;
-                       if (file != null) {
-                           try {
-                               byte[] data = file.contentsToByteArray();
-                               ImageIcon imageIcon = new ImageIcon(data);
-                               float targetHeight = 32;
-                               float scale = targetHeight / imageIcon.getIconHeight();
-                               Icon icon = IconUtil.scale(imageIcon, null,scale) ;
-                               result.addElement(LookupElementBuilder.create(filePair.first).withIcon(icon));
-                           } catch (IOException e) {
-                               LOG.error("lookup element add icon failed " + e);
-                               result.addElement(LookupElementBuilder.create(filePair.first));
-                           }
-                       } else {
-                           result.addElement(LookupElementBuilder.create(filePair.first));
-                       }
-                   }
-                   
+               if (allPaths == null) {
+                   LOG.error("all asset path list is null");
+                   return;
+               }
+               List<Pair<String, VirtualFile>> filteredPaths = filterPaths(allPaths, text);
+               if (filteredPaths == null) {
+                   LOG.error("filtered path list is null");
+                   return;
+               }
+               if (filteredPaths.isEmpty()) {
+                   LOG.error("filtered path list is empty");
+                   return;
                }
 
-           });
+
+               List<Pair<String, VirtualFile>> sortedPaths = sortedAssetPaths(text, filteredPaths);
+               LOG.info("all sorted asset paths " + sortedPaths);
+               result = result.withPrefixMatcher(new PlainPrefixMatcher(text, false)).caseInsensitive();
+               for (Pair<String, VirtualFile> filePair :
+                       sortedPaths) {
+                   ProgressManager.checkCanceled();
+                   VirtualFile file = filePair.second;
+                   if (file != null) {
+                       try {
+                           BufferedImage inputImage = ImageIO.read(new File(file.getPath()));
+                           if (inputImage != null) {
+                               Image outputImage = inputImage.getScaledInstance(-1, 32, Image.SCALE_FAST);
+                               Icon icon = IconUtil.createImageIcon(outputImage);
+                               result.addElement(LookupElementBuilder.create(filePair.first).withIcon(icon));
+                           }
+                       } catch (Exception e) {
+                           LOG.error("lookup element add icon failed " + e);
+                       }
+                   }
+                   result.addElement(LookupElementBuilder.create(filePair.first));
+               }
+
+           }
+       });
     }
 
     private static  List<Pair<String, VirtualFile>> filterPaths(@NotNull List<Pair<String, VirtualFile>> paths, @NotNull String prefix) {
         if (paths.isEmpty()) {
             return null;
         }
-        AssetPathMatcher matcher = new AssetPathMatcher(prefix);
+        PlainPrefixMatcher matcher = new PlainPrefixMatcher(prefix, false);
         List<Pair<String, VirtualFile>> ret = new ArrayList<Pair<String, VirtualFile>>(paths);
         ret.removeIf(new Predicate<Pair<String, VirtualFile>>() {
             @Override
