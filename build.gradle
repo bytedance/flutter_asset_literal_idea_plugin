@@ -8,7 +8,7 @@ publishPlugin {
 }
 
 group 'com.ixigua'
-version '1.2.1'
+version '1.2.3'
 
 sourceCompatibility = 1.8
 
@@ -24,8 +24,9 @@ dependencies {
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
     version intellijVersion
-    type 'IC'
+    type 'IU'
     plugins "Dart:$dartVersion"
+    updateSinceUntilBuild false
 }
 
 runIde {
@@ -35,7 +36,15 @@ runIde {
 }
 
 patchPluginXml {
-    changeNotes """  
+    changeNotes """   
+     <h1>1.2.3</h1>
+    <ul>
+      <li> support Android Studio from 191 to 193 </li>
+    </ul>
+    <h1>1.2.2</h1>
+    <ul>
+      <li> support Android Studio 192 </li>
+    </ul>
     <h1>1.2.1</h1>
     <ul>
       <li> fix bug: lookup string is lowercase </li>
