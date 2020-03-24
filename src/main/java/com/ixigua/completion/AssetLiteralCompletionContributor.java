@@ -91,7 +91,8 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                            BufferedImage inputImage = ImageIO.read(new File(file.getPath()));
                            if (inputImage != null) {
                                Image outputImage = inputImage.getScaledInstance(-1, 32, Image.SCALE_FAST);
-                               Icon icon = IconUtil.createImageIcon(outputImage);
+                               // 防止图片过宽
+                               Icon icon = IconUtil.cropIcon(IconUtil.createImageIcon(outputImage), 32, 32);
                                result.addElement(LookupElementBuilder.create(filePair.first).withIcon(icon));
                            }
                        } catch (Exception e) {
