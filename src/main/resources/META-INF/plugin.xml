@@ -4,8 +4,139 @@
     <vendor url="https://www.ixigua.com/">ixigua.com</vendor>
 
     <description><![CDATA[
-    Suggest asset paths when you type a Dart string.<br>
-    <img src="https://i.imgur.com/Ssc3eMJ.gif" alt="demo"  width=480/>
+    <h2>Automatically help you complete the path of assets when you type a Dart string</h2>
+<img src="https://i.imgur.com/Ssc3eMJ.gif" alt="demo"  width=480/>
+<h3>Support preview of multiple image formats such as png, svg, jpg, gif and more</h3>
+<h3>Support for assets declared in pubspec.yaml</h3>
+<ul>
+  <li>normal assets like:</li>
+</ul>
+<pre><code class="yaml">
+    assets:
+      - path/to/assets_directory
+      - path/to/image.png
+</code></pre>
+<ul>
+  <li>assets in &quot;lib&quot; directory like:</li>
+</ul>
+<pre><code class="yaml">
+    assets:
+      - image.png
+</code></pre>
+<ul>
+  <li>assets in other packages like:</li>
+</ul>
+<pre><code class="yaml">
+    assets:
+      - packages/fancy_images_lib/image.png
+</code></pre>
+<h3>Support for fonts</h3>
+<ul>
+  <li>normal fonts declared in pubspec.yaml like:</li>
+</ul>
+<pre><code class="yaml">
+    fonts:
+      - family: Andale Mono
+        fonts:
+          - asset: fonts/Andale Mono.ttf
+</code></pre>
+<ul>
+  <li>iOS pre-installed fonts</li>
+</ul>
+<pre><code>IOS_9_FONT_LIST:
+          &quot;PingFang HK&quot;,
+          &quot;PingFang SC&quot;,
+          &quot;PingFang TC&quot;,
+          &quot;Kohinoor Bangla&quot;,
+          &quot;Hiragino Sans&quot;,
+
+IOS_8_FONT_LIST:
+          &quot;Academy Engraved LET&quot;,
+          &quot;Al Nile&quot;,
+          &quot;American Typewriter&quot;,
+          &quot;Apple Color Emoji&quot;,
+          &quot;Apple SD Gothic Neo&quot;,
+          &quot;Arial&quot;,
+          &quot;Arial Hebrew&quot;,
+          &quot;Arial Rounded MT Bold&quot;,
+          &quot;Avenir&quot;,
+          &quot;Avenir Next&quot;,
+          &quot;Avenir Next Condensed&quot;,
+          &quot;Bangla Sangam MN&quot;,
+          &quot;Baskerville&quot;,
+          &quot;Bodoni Ornaments&quot;,
+          &quot;Bradley Hand&quot;,
+          &quot;Chalkboard SE&quot;,
+          &quot;Chalkduster&quot;,
+          &quot;Cochin&quot;,
+          &quot;Copperplate&quot;,
+          &quot;Courier&quot;,
+          &quot;Courier New&quot;,
+          &quot;DB LCD Temp&quot;,
+          &quot;DIN Alternate&quot;,
+          &quot;DIN Condensed&quot;,
+          &quot;Damascus&quot;,
+          &quot;Devanagari Sangam MN&quot;,
+          &quot;Didot&quot;,
+          &quot;Diwan Mishafi&quot;,
+          &quot;Euphemia UCAS&quot;,
+          &quot;Farah&quot;,
+          &quot;Futura&quot;,
+          &quot;Geeza Pro&quot;,
+          &quot;Georgia&quot;,
+          &quot;Gill Sans&quot;,
+          &quot;Gujarati Sangam MN&quot;,
+          &quot;Gurmukhi MN&quot;,
+          &quot;Heiti SC&quot;,
+          &quot;Heiti TC&quot;,
+          &quot;Helvetica&quot;,
+          &quot;Helvetica Neue&quot;,
+          &quot;Hiragino Kaku Gothic ProN&quot;,
+          &quot;Hiragino Mincho ProN&quot;,
+          &quot;Hoefler Text&quot;,
+          &quot;Iowan Old Style&quot;,
+          &quot;Kailasa&quot;,
+          &quot;Kannada Sangam MN&quot;,
+          &quot;KhmerSangamMN&quot;,
+          &quot;KohinoorDevanagari&quot;,
+          &quot;Kohinor Telugu&quot;,
+          &quot;LaoSangamMN&quot;,
+          &quot;Malayalam Sangam MN&quot;,
+          &quot;Marion&quot;,
+          &quot;Marker Felt&quot;,
+          &quot;Menlo&quot;,
+          &quot;Noteworthy&quot;,
+          &quot;Optima&quot;,
+          &quot;Oriya Sangam MN&quot;,
+          &quot;Palatino&quot;,
+          &quot;Papyrus&quot;,
+          &quot;Party LET&quot;,
+          &quot;San Francisco&quot;,
+          &quot;Savoye Let&quot;,
+          &quot;Sinhala Sangam MN&quot;,
+          &quot;Snell Roundhand&quot;,
+          &quot;Superclarendon&quot;,
+          &quot;Symbol&quot;,
+          &quot;Tamil Sangam MN&quot;,
+          &quot;Telugu Sangam MN&quot;,
+          &quot;Thonburi&quot;,
+          &quot;Times New Roman&quot;,
+          &quot;Trebuchet MS&quot;,
+          &quot;Verdana&quot;,
+          &quot;Zapf Dingbats&quot;,
+          &quot;Zapfino&quot;,
+</code></pre>
+<ul>
+  <li>Android pre-installed fonts</li>
+</ul>
+<pre><code>          &quot;sans-serif&quot;,
+          &quot;sans-serif-light&quot;,
+          &quot;sans-serif-thin&quot;,
+          &quot;sans-serif-condensed&quot;,
+          &quot;serif&quot;,
+          &quot;Droid Sans&quot;,
+</code></pre>
+<h3><a href="https://github.com/cikelengfeng/FlutterAssetAutoCompletionIssueTracker">Submit Issues</a></h3>
     ]]></description>
 
 <!--    copy from Flutter plugin -->

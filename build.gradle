@@ -8,7 +8,7 @@ publishPlugin {
 }
 
 group 'com.ixigua'
-version '1.4.0'
+version '1.4.1'
 
 sourceCompatibility = 1.8
 
@@ -40,6 +40,10 @@ runIde {
 
 patchPluginXml {
     changeNotes """
+    <h1>1.4.1</h1>
+    <ul>
+      <li> Add Android and iOS pre-installed fonts as default candidates </li>
+    </ul>
     <h1>1.4.0</h1>
     <ul>
       <li> supports fonts </li>
