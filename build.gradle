@@ -33,11 +33,17 @@ intellij {
 runIde {
     // Absolute path to installed target v3.5 Android Studio to use as IDE Development Instance
     // The "Contents" directory is macOS specific.
-    ideDirectory '/Applications/Android Studio.app/Contents'
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    ideDirectory properties.getProperty('ideDirectory')
 }
 
 patchPluginXml {
     changeNotes """
+    <h1>1.4.0</h1>
+    <ul>
+      <li> supports fonts </li>
+    </ul>
     <h1>1.3.0</h1>
     <ul>
       <li> supports svg file preview </li>
