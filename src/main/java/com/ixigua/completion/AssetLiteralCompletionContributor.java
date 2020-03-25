@@ -17,6 +17,7 @@ import com.intellij.util.IconUtil;
 import com.intellij.util.ProcessingContext;
 import com.intellij.util.text.EditDistance;
 import com.ixigua.completion.svg.SVGActivator;
+import com.ixigua.completion.transform.TransformImage;
 import com.jetbrains.lang.dart.DartTokenTypes;
 import com.jetbrains.lang.dart.util.PubspecYamlUtil;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +30,8 @@ import org.yaml.snakeyaml.representer.Representer;
 import org.yaml.snakeyaml.resolver.Resolver;
 
 import javax.imageio.ImageIO;
+import javax.imageio.spi.IIORegistry;
+import javax.imageio.spi.ImageReaderSpi;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -51,6 +54,13 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
 
     public AssetLiteralCompletionContributor() {
         svgActivator.activate();
+//        IIORegistry iioRegistry = IIORegistry.getDefaultInstance();
+//        iioRegistry.getServiceProviders(ImageReaderSpi.class, true).forEachRemaining(new Consumer<ImageReaderSpi>() {
+//            @Override
+//            public void accept(ImageReaderSpi imageReaderSpi) {
+//                System.out.println("image reader vendor: " + imageReaderSpi.getVendorName() + " desc: " + imageReaderSpi.getDescription(Locale.getDefault()));
+//            }
+//        });
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(DartTokenTypes.REGULAR_STRING_PART), new CompletionProvider<CompletionParameters>() {
 
            @Override
@@ -90,9 +100,8 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                        try {
                            BufferedImage inputImage = ImageIO.read(new File(file.getPath()));
                            if (inputImage != null) {
-                               Image outputImage = inputImage.getScaledInstance(-1, 32, Image.SCALE_FAST);
-                               // 防止图片过宽
-                               Icon icon = IconUtil.cropIcon(IconUtil.createImageIcon(outputImage), 32, 32);
+                               Image outputImage = TransformImage.resizeAspectFitCenter(inputImage, 32, 32);
+                               Icon icon = IconUtil.createImageIcon(outputImage);
                                result.addElement(LookupElementBuilder.create(filePair.first).withIcon(icon));
                            }
                        } catch (Exception e) {
