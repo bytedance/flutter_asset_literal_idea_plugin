@@ -7,12 +7,11 @@ import com.intellij.openapi.vfs.VFileProperty;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
+import com.ixigua.completion.fonts.AndroidFonts;
+import com.ixigua.completion.fonts.IOSFonts;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -37,10 +36,18 @@ public class AssetFinder {
         List<String> assetsDeclarations = findAssetsDeclarations((Map<String, Object>) flutterDeclaration);
 //        展开所有 assets
         assets.addAll(expandAssetsDeclarations(pubspec, assetsDeclarations, packageName));
-        // 再找到所有的 fonts 声明
+        // 找到所有的 pubspec 中的 fonts 声明
         List<String> fontsDeclarations = findFontsDeclarations((Map<String, Object>) flutterDeclaration);
-//        展开所有 fonts
+//        展开所有 pubspec fonts
         assets.addAll(expandFontsDeclarations(fontsDeclarations, packageName));
+        // 添加 iOS 所有内置 fonts
+        List<String> iOS9Fonts = Arrays.asList(IOSFonts.IOS_9_FONT_LIST);
+        assets.addAll(expandFontsDeclarations(iOS9Fonts, "iOS 9 Font"));
+        List<String> iOS8Fonts = Arrays.asList(IOSFonts.IOS_8_FONT_LIST);
+        assets.addAll(expandFontsDeclarations(iOS8Fonts, "iOS 8 Font"));
+        // 添加 Android 内置字体
+        List<String> androidFonts = Arrays.asList(AndroidFonts.FONT_LIST);
+        assets.addAll(expandFontsDeclarations(androidFonts, "Android Font"));
         return assets;
     }
 

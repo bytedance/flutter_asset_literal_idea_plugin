@@ -7,14 +7,14 @@ public class Asset {
     private AssetType type;
     private VirtualFile file;
 
-    public Asset(String name, AssetType type, VirtualFile file, String bundledPackage) {
+    public Asset(String name, AssetType type, VirtualFile file, String sourceDescription) {
         this.name = name;
         this.type = type;
         this.file = file;
-        this.bundledPackage = bundledPackage;
+        this.sourceDescription = sourceDescription;
     }
 
-    private String bundledPackage;
+    private String sourceDescription;
 
     public String getName() {
         return name;
@@ -28,8 +28,8 @@ public class Asset {
         return type;
     }
 
-    public String getBundledPackage() {
-        return bundledPackage;
+    public String getSourceDescription() {
+        return sourceDescription;
     }
 
     @Override
@@ -37,7 +37,7 @@ public class Asset {
         return "Asset{" +
                 "name='" + name + '\'' +
                 ", file=" + file +
-                ", bundledPackage='" + bundledPackage + '\'' +
+                ", bundledPackage='" + sourceDescription + '\'' +
                 '}';
     }
 }

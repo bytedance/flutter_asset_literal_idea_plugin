@@ -107,6 +107,9 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                        Icon icon = IconUtil.createImageIcon(outputImage);
                        elementBuilder = elementBuilder.withIcon(icon);
                    }
+                   if (asset.getSourceDescription() != null) {
+                       elementBuilder = elementBuilder.withTypeText(asset.getSourceDescription());
+                   }
                    result.addElement(elementBuilder);
                }
 
