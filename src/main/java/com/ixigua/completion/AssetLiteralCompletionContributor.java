@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.intellij.codeInsight.completion.CompletionUtilCore.DUMMY_IDENTIFIER;
+import static com.intellij.codeInsight.completion.CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED;
 
 public class AssetLiteralCompletionContributor extends CompletionContributor {
 
@@ -53,9 +54,10 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
            @Override
            protected void addCompletions(@NotNull CompletionParameters parameters, @NotNull ProcessingContext context, @NotNull CompletionResultSet result) {
                ProgressManager.checkCanceled();
-               String text = parameters.getPosition().getText().replaceFirst(DUMMY_IDENTIFIER, "");
-               LOG.info("asset literal prefix string " + text);
-               if (text.isEmpty()) {
+               int caretPosition =  parameters.getPosition().getText().indexOf(DUMMY_IDENTIFIER);
+               String prefix = parameters.getPosition().getText().substring(0, caretPosition);
+               LOG.info("asset literal prefix string " + prefix);
+               if (prefix.isEmpty()) {
                    LOG.error("dart string is empty");
                    return;
                }
@@ -65,7 +67,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                    LOG.error("all asset list is null");
                    return;
                }
-               List<Asset> filteredPaths = filterAssets(assets, text);
+               List<Asset> filteredPaths = filterAssets(assets, prefix);
                if (filteredPaths == null) {
                    LOG.error("filtered path list is null");
                    return;
@@ -76,9 +78,9 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                }
 
 
-               List<Asset> sortedPaths = sortedAssets(text, filteredPaths);
+               List<Asset> sortedPaths = sortedAssets(prefix, filteredPaths);
                LOG.info("all sorted asset paths " + sortedPaths);
-               result = result.withPrefixMatcher(new PlainPrefixMatcher(text, false)).caseInsensitive();
+               result = result.withPrefixMatcher(new PlainPrefixMatcher(prefix, false)).caseInsensitive();
                for (Asset asset :
                        sortedPaths) {
                    ProgressManager.checkCanceled();
