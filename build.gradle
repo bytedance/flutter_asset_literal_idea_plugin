@@ -8,7 +8,7 @@ publishPlugin {
 }
 
 group 'com.ixigua'
-version '1.4.3'
+version '1.4.4'
 
 sourceCompatibility = 1.8
 
@@ -40,6 +40,10 @@ runIde {
 
 patchPluginXml {
     changeNotes """
+    <h1>1.4.4</h1>
+    <ul>
+      <li> bugfix </li>
+    </ul>
     <h1>1.4.3</h1>
     <ul>
       <li> Improve performance </li>
