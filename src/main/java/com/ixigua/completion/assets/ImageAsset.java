@@ -31,6 +31,8 @@ public class ImageAsset extends Asset {
     @Nullable
     @Override
     public Icon icon() {
-        return IconDecorator.get(getFile(), lookupString());
+        VirtualFile file = getFile();
+        String cacheKey = file == null ? lookupString() : (lookupString() + file.getTimeStamp());
+        return IconDecorator.get(file, cacheKey);
     }
 }
