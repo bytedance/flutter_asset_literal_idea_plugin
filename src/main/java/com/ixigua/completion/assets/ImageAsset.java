@@ -19,7 +19,7 @@ public class ImageAsset extends Asset {
     @NotNull
     @Override
     public String lookupString() {
-        return "packages/" + getSourceDescription() + "/" + getName();
+        return getName();
     }
 
     @Nullable
