@@ -116,7 +116,7 @@ public class AssetFinder {
                     if (splited[1].isEmpty()) {
                         return;
                     }
-                    ret.add(new Asset(declaration, AssetType.asset,null,splited[1]));
+                    ret.add(new ImageAsset(declaration,null,splited[1]));
                     return;
                 }
                 LOG.info("find assets file " + child);
@@ -127,7 +127,7 @@ public class AssetFinder {
                 List<Asset> assets = filePairs.stream().map(new Function<Pair<String, VirtualFile>, Asset>() {
                     @Override
                     public Asset apply(Pair<String, VirtualFile> stringVirtualFilePair) {
-                        return new Asset(stringVirtualFilePair.first, AssetType.asset, stringVirtualFilePair.second, currentPackage);
+                        return new ImageAsset(stringVirtualFilePair.first, stringVirtualFilePair.second, currentPackage);
                     }
                 }).collect(Collectors.toList());
                 ret.addAll(assets);
@@ -174,7 +174,7 @@ public class AssetFinder {
         return declarations.stream().map(new Function<String, Asset>() {
             @Override
             public Asset apply(String s) {
-                return new Asset(s, AssetType.font,null, currentPackage);
+                return new FontAsset(s,null, currentPackage);
             }
         }).collect(Collectors.toList());
     }

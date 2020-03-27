@@ -1,36 +1,45 @@
 package com.ixigua.completion.assets;
 
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class Asset {
+import javax.swing.*;
+
+public abstract class Asset {
     private String name;
-    private AssetType type;
     private VirtualFile file;
+    private String sourceDescription;
 
-    public Asset(String name, AssetType type, VirtualFile file, String sourceDescription) {
+    public Asset(@NotNull String name, @Nullable VirtualFile file, @Nullable String sourceDescription) {
         this.name = name;
-        this.type = type;
         this.file = file;
         this.sourceDescription = sourceDescription;
     }
 
-    private String sourceDescription;
-
+    @NotNull
     public String getName() {
         return name;
     }
 
+    @Nullable
     public VirtualFile getFile() {
         return file;
     }
 
-    public AssetType getType() {
-        return type;
-    }
-
+    @Nullable
     public String getSourceDescription() {
         return sourceDescription;
     }
+
+    @NotNull
+    public abstract String lookupString();
+
+    @Nullable
+    public abstract String typeText();
+
+    @Nullable
+    public abstract Icon icon();
 
     @Override
     public String toString() {

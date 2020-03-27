@@ -6,24 +6,16 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
-import com.intellij.util.IconUtil;
 import com.intellij.util.ProcessingContext;
 import com.intellij.util.text.EditDistance;
 import com.ixigua.completion.assets.Asset;
 import com.ixigua.completion.assets.AssetFinder;
-import com.ixigua.completion.assets.AssetType;
 import com.ixigua.completion.pubspec.PubspecUtil;
 import com.ixigua.completion.svg.SVGActivator;
-import com.ixigua.completion.transform.TransformImage;
 import com.jetbrains.lang.dart.DartTokenTypes;
 import org.jetbrains.annotations.NotNull;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -31,14 +23,11 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.intellij.codeInsight.completion.CompletionUtilCore.DUMMY_IDENTIFIER;
-import static com.intellij.codeInsight.completion.CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED;
 
 public class AssetLiteralCompletionContributor extends CompletionContributor {
 
     private static final Logger LOG = Logger.getInstance(AssetLiteralCompletionContributor.class);
     private final SVGActivator svgActivator = new SVGActivator();
-    private static final int ICON_WIDTH = 32;
-    private static final int ICON_HEIGHT = 32;
 
     public AssetLiteralCompletionContributor() {
         svgActivator.activate();
@@ -85,32 +74,14 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                        sortedPaths) {
                    ProgressManager.checkCanceled();
                    VirtualFile file = asset.getFile();
-                   LookupElementBuilder elementBuilder = LookupElementBuilder.create(asset.getName());
-                   BufferedImage iconImage = null;
-                   try {
-                       if (file != null && asset.getType() == AssetType.asset) {
-                           iconImage = ImageIO.read(new File(file.getPath()));
-                       } else if (asset.getType() == AssetType.font) {
-                           iconImage = ImageIO.read(this.getClass().getResourceAsStream("font_icon.png"));
-                       }
-
-                   } catch (Exception e) {
-                       LOG.error("read icon failed " + e);
-                   }
-                   if (iconImage == null) {
-                       try {
-                           iconImage = ImageIO.read(this.getClass().getResourceAsStream("blank_icon.png"));
-                       } catch (IOException e) {
-                           LOG.error("read error icon failed " + e);
-                       }
-                   }
-                   if (iconImage != null) {
-                       Image outputImage = TransformImage.resizeAspectFitCenter(iconImage, ICON_WIDTH, ICON_HEIGHT);
-                       Icon icon = IconUtil.createImageIcon(outputImage);
+                   LookupElementBuilder elementBuilder = LookupElementBuilder.create(asset.lookupString());
+                   Icon icon = asset.icon();
+                   if (icon != null) {
                        elementBuilder = elementBuilder.withIcon(icon);
                    }
-                   if (asset.getSourceDescription() != null) {
-                       elementBuilder = elementBuilder.withTypeText(asset.getSourceDescription());
+                   String typeStr = asset.typeText();
+                   if (typeStr != null) {
+                       elementBuilder = elementBuilder.withTypeText(typeStr);
                    }
                    result.addElement(elementBuilder);
                }
@@ -129,7 +100,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
             @Override
             public boolean test(Asset s) {
                 ProgressManager.checkCanceled();
-                return !matcher.prefixMatches(s.getName());
+                return !matcher.prefixMatches(s.lookupString());
             }
         });
         return ret;
