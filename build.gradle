@@ -3,6 +3,9 @@ plugins {
     id 'org.jetbrains.intellij' version '0.4.16'
 }
 
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
 publishPlugin {
     token System.getenv("ORG_GRADLE_PROJECT_intellijPublishToken")
 }
@@ -18,8 +21,11 @@ repositories {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
     compile group: 'org.apache.xmlgraphics', name: 'batik-transcoder', version: '1.7'
+}
+
+test {
+    systemProperty "idea.home.path", properties.getProperty('ideDirectory')
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
@@ -33,8 +39,6 @@ intellij {
 runIde {
     // Absolute path to installed target v3.5 Android Studio to use as IDE Development Instance
     // The "Contents" directory is macOS specific.
-    Properties properties = new Properties()
-    properties.load(project.rootProject.file('local.properties').newDataInputStream())
     ideDirectory properties.getProperty('ideDirectory')
 }
 
