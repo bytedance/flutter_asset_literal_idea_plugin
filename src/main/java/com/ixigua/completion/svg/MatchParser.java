@@ -12,7 +12,6 @@ import java.util.regex.Pattern;
  * Class responsible for parsing magic file and building a list of Matcher
  * objects
  *
- * @volantis-api-include-in InternalAPI
  */
 public class MatchParser {
 

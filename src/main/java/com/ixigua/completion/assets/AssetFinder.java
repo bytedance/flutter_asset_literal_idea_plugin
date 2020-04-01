@@ -9,7 +9,9 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
 import com.ixigua.completion.fonts.AndroidFonts;
 import com.ixigua.completion.fonts.IOSFonts;
+import com.ixigua.completion.pubspec.PubspecUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -21,40 +23,58 @@ public class AssetFinder {
 
     private static final Logger LOG = Logger.getInstance(AssetFinder.class);
 
-    // 解析到所有的 asset 声明，包括 assets 和 fonts
-    public static List<Asset> findAllAsset(@NotNull VirtualFile pubspec, @NotNull Map<String, Object> pubspecInfo) {
+    // Parse all assets including:
+    // 1. "assets" and "fonts" declarations in pubspec
+    // 2. pre-installed fonts on iOS and Android
+    @Nullable
+    public static List<Asset> findAllAsset(VirtualFile pubspec) {
+        LOG.info("pubspec file " + pubspec);
+        if (pubspec == null) {
+            LOG.error("pub spec file is null");
+            return null;
+        }
+        // parse the pubspec file
+        Map<String, Object> pubInfo = PubspecUtil.getPubspecYamlInfo(pubspec);
+        if (pubInfo == null) {
+            LOG.error("pub spec info is null");
+            return null;
+        }
+
         final List<Asset> assets = new ArrayList<>();
 
-        // 首选找到 flutter 声明，如果没有，那么就认为没有 assets
-        Object flutterDeclaration = pubspecInfo.get("flutter");
+        // It is preferred to find the flutter statement, if there is no, then it is assumed that there are no assets
+        Object flutterDeclaration = pubInfo.get("flutter");
         if (!(flutterDeclaration instanceof Map)) {
-            return Collections.emptyList();
+            return null;
         }
-        Object packageNameDeclaration = pubspecInfo.get("name");
+        Object packageNameDeclaration = pubInfo.get("name");
         String packageName = packageNameDeclaration instanceof String ? (String) packageNameDeclaration : null;
-//        找到所有的 assets 声明
+//        Find all declarations under the "assets:" statement
         List<String> assetsDeclarations = findAssetsDeclarations((Map<String, Object>) flutterDeclaration);
-//        展开所有 assets
+//        Expand all asset declarations，we will recursively traverse each declared
+//        folder, all sub-files of these folders will be included, which is different from the behavior of Flutter:
+//        Flutter will only include the direct children of each declared folder.
         assets.addAll(expandAssetsDeclarations(pubspec, assetsDeclarations, packageName));
-        // 找到所有的 pubspec 中的 fonts 声明
+        // Find all declarations under the "fonts:" statement
         List<String> fontsDeclarations = findFontsDeclarations((Map<String, Object>) flutterDeclaration);
-//        展开所有 pubspec fonts
+//        Expand all font declarations, we only care about the font family and will not verify the existence of the font file
         assets.addAll(expandFontsDeclarations(fontsDeclarations, packageName));
-        // 添加 iOS 所有内置 fonts
+        // Add all pre-installed fonts for iOS
         List<String> iOS9Fonts = Arrays.asList(IOSFonts.IOS_9_FONT_LIST);
         assets.addAll(expandFontsDeclarations(iOS9Fonts, "iOS 9 Font"));
         List<String> iOS8Fonts = Arrays.asList(IOSFonts.IOS_8_FONT_LIST);
         assets.addAll(expandFontsDeclarations(iOS8Fonts, "iOS 8 Font"));
-        // 添加 Android 内置字体
+        //Add all pre-installed fonts for Android
         List<String> androidFonts = Arrays.asList(AndroidFonts.FONT_LIST);
         assets.addAll(expandFontsDeclarations(androidFonts, "Android Font"));
+
+        LOG.info("find all assets" + assets);
         return assets;
     }
 
     @NotNull
     private static List<String> findAssetsDeclarations(@NotNull Map<String, Object> flutterDeclaration) {
         Object ats = flutterDeclaration.get("assets");
-        LOG.info("assets class " + ats.getClass());
         LOG.info("assets in flutter " + ats);
         if (!(ats instanceof List)) {
             return Collections.emptyList();
@@ -63,11 +83,12 @@ public class AssetFinder {
             @Override
             public boolean test(Object o) {
                 ProgressManager.checkCanceled();
-                // assets 中有可能有空元素，
-                // 比如 assets:
-                //          - images
-                //          -
-                // 第二行就会被解析成空
+                // There may be empty elements under "assets" state，
+                // like:
+                // assets:
+                //   - images
+                //   -
+                // The second line will be parsed as null
                 return o == null;
             }
         });
@@ -80,6 +101,7 @@ public class AssetFinder {
         declarations.forEach(new Consumer<String>() {
             @Override
             public void accept(String declaration) {
+//                Check frequently if the user cancels the current operation
                 ProgressManager.checkCanceled();
                 if (declaration == null) {
                     return;
@@ -95,7 +117,8 @@ public class AssetFinder {
                 if (child == null) {
                     VirtualFile libDirectory = parent.findFileByRelativePath("lib/");
                     if (libDirectory != null) {
-                        // Flutter 支持在 pubspec 中指定 lib 文件夹下的文件作为资源文件（文件必须直接放在 lib 文件夹下，不能放在 lib 的子文件夹下）
+                        // Flutter supports specifying files in the "lib" folder as assets in the pubspec (files
+                        // must be placed directly in the "lib" folder, not in sub-folders of "lib")
                         try {
                             child = libDirectory.findFileByRelativePath(declaration);
                             parent = libDirectory;
@@ -105,7 +128,9 @@ public class AssetFinder {
                     }
                 }
                 if (child == null) {
-                    // Flutter 还支持以 packages/{xx_lib}/yy.png 模式引用子库的资源，如果是这种case，我们暂时没法确定文件是否真实存在，直接算作候选词条
+                    // Flutter also supports referencing dependent library assets in "packages/xx_lib/yy" mode. If this
+                    // is the case, we can't determine whether the file really exists for the time being, and directly
+                    // count it as a candidate entry.
                     String[] splited = declaration.split("/");
                     if (splited.length < 3) {
                         return;
@@ -142,7 +167,6 @@ public class AssetFinder {
         if (fts == null) {
             return Collections.emptyList();
         }
-        LOG.info("fonts class " + fts.getClass());
         LOG.info("fonts in flutter " + fts);
         if (!(fts instanceof List)) {
             return Collections.emptyList();

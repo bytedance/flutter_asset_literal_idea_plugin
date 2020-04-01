@@ -1,6 +1,7 @@
 package com.ixigua.completion.fonts;
 
 public class IOSFonts {
+//    Fonts pre-installed on iOS 9 and above
     public final static String[] IOS_9_FONT_LIST = new String[] {
             "PingFang HK",
             "PingFang SC",
@@ -8,7 +9,7 @@ public class IOSFonts {
             "Kohinoor Bangla",
             "Hiragino Sans",
     };
-//    iOS 9 以上支持的字体，
+//    Fonts pre-installed on iOS 8 and above
     public final static String[] IOS_8_FONT_LIST = new String[]{
             "Academy Engraved LET",
             "Al Nile",

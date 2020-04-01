@@ -7,7 +7,6 @@ import java.util.List;
 /**
  * Class contains data to match.
  *
- * @volantis-api-include-in InternalAPI
  */
 public class Match {
 

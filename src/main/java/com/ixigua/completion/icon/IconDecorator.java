@@ -21,7 +21,8 @@ public class IconDecorator {
     private static final int ICON_HEIGHT = 32;
     private static final Logger LOG = Logger.getInstance(IconDecorator.class);
 
-    //为了防止默认icon和用户icon恰巧使用了相同的 cache key，所以不放到 ICON_CACHE 中
+    //In order to prevent the default icon and user icon from using the same cache key, the default icon is not placed
+    // in ICON_CACHE
     private static Icon DEFAULT_FONT_ICON = null;
     private static Icon BLANK_ICON = null;
     private static Map<String, Icon> ICON_CACHE = new HashMap<>();
@@ -40,7 +41,7 @@ public class IconDecorator {
         try {
             iconImage = ImageIO.read(new File(file.getPath()));
         } catch (IOException e) {
-            LOG.error("read font icon failed " + e);
+            LOG.info("read icon failed, file: " + file + " exception: " + e);
         }
         if (iconImage == null) {
             return blankIcon();

@@ -1,5 +1,6 @@
 package com.ixigua.completion.svg;
 
+import com.intellij.util.ui.UIUtil;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.ImageTranscoder;
@@ -59,8 +60,7 @@ public class BufferedImageTranscoder extends ImageTranscoder {
      */
     @Override
     public BufferedImage createImage(int width, int height) {
-        final BufferedImage image =
-                new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        final BufferedImage image = UIUtil.createImage(width, height, BufferedImage.TYPE_INT_RGB);
         return image;
     }
 }

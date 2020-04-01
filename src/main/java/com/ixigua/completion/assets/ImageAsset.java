@@ -32,6 +32,7 @@ public class ImageAsset extends Asset {
     @Override
     public Icon icon() {
         VirtualFile file = getFile();
+//      Add the timestamp of the file to the cache key so that when the file changes, we can get different icon
         String cacheKey = file == null ? lookupString() : (lookupString() + file.getTimeStamp());
         return IconDecorator.get(file, cacheKey);
     }

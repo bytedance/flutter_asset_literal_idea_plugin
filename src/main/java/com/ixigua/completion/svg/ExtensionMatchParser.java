@@ -10,7 +10,6 @@ import java.util.Properties;
 /**
  * Class responsible for parsing mapping file of extension->mime type pairs.
  *
- * @volantis-api-include-in InternalAPI
  */
 public class ExtensionMatchParser {
 

@@ -14,7 +14,6 @@ import java.util.List;
  * particular MIME type, so a Matcher can contain a list of Matchers that
  * detect the same file type, but by a different method.
  *
- * @volantis-api-include-in InternalAPI
  */
 public class Matcher {
 

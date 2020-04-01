@@ -8,7 +8,6 @@ import java.io.InputStream;
 /**
  * Interface provides utility methods for detecting MIME type
  *
- * @volantis-api-include-in InternalAPI
  */
 public interface MimeDiscoverer {
 
