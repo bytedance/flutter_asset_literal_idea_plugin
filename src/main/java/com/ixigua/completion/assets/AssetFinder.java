@@ -59,12 +59,12 @@ public class AssetFinder {
         List<String> fontsDeclarations = findFontsDeclarations((Map<String, Object>) flutterDeclaration);
 //        Expand all font declarations, we only care about the font family and will not verify the existence of the font file
         assets.addAll(expandFontsDeclarations(fontsDeclarations, packageName));
-        // Add all pre-installed fonts for iOS
+        // Add all pre-installed fonts on iOS
         List<String> iOS9Fonts = Arrays.asList(IOSFonts.IOS_9_FONT_LIST);
         assets.addAll(expandFontsDeclarations(iOS9Fonts, "iOS 9 Font"));
         List<String> iOS8Fonts = Arrays.asList(IOSFonts.IOS_8_FONT_LIST);
         assets.addAll(expandFontsDeclarations(iOS8Fonts, "iOS 8 Font"));
-        //Add all pre-installed fonts for Android
+        //Add all pre-installed fonts on Android
         List<String> androidFonts = Arrays.asList(AndroidFonts.FONT_LIST);
         assets.addAll(expandFontsDeclarations(androidFonts, "Android Font"));
 

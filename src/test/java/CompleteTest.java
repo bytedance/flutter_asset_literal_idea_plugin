@@ -15,9 +15,11 @@ public class CompleteTest extends BasePlatformTestCase {
 
     public void testCompletionNormalAsset() {
 //      BasePlatformTestCase will create an in-memory editor, we can simulate the user's editing behavior through myFixture
+
 //      We can copy the test resource file to the editor through the copyDirectoryToProject method
+
 //      Here we add the assets folder, pubspec.yaml, and other resource files to the editor. you can see the directory
-//      structure of these files under the testData folder
+//      structure of these files under the src/test/testData folder
         myFixture.copyDirectoryToProject("assets", "assets");
         myFixture.copyFileToProject("pubspec.yaml");
 //      We can use the configureByFiles method to let the editor open a file, just like we are editing this file,
