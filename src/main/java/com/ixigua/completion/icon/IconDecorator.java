@@ -58,7 +58,7 @@ public class IconDecorator {
         try {
             Image outputImage = TransformImage.resizeAspectFitCenter(image, ICON_WIDTH, ICON_HEIGHT);
             icon = IconUtil.createImageIcon(outputImage);
-            if (icon != null && cacheKey != null) {
+            if (cacheKey != null) {
                 ICON_CACHE.put(cacheKey, icon);
             }
         } catch (Exception e) {

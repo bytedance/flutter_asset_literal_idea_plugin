@@ -79,18 +79,15 @@ public class AssetFinder {
         if (!(ats instanceof List)) {
             return Collections.emptyList();
         }
-        ((List) ats).removeIf(new Predicate() {
-            @Override
-            public boolean test(Object o) {
-                ProgressManager.checkCanceled();
-                // There may be empty elements under "assets" state，
-                // like:
-                // assets:
-                //   - images
-                //   -
-                // The second line will be parsed as null
-                return o == null;
-            }
+        ((List) ats).removeIf(o -> {
+            ProgressManager.checkCanceled();
+            // There may be empty elements under "assets" state，
+            // like:
+            // assets:
+            //   - images
+            //   -
+            // The second line will be parsed as null
+            return o == null;
         });
         return (List<String>) ats;
     }
