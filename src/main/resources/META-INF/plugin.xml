@@ -36,6 +36,9 @@
 </code></pre>
 <h3>Support for fonts</h3>
 <ul>
+  <li>fonts declared in pubspec.yaml of other packages</li>
+</ul>
+<ul>
   <li>normal fonts declared in pubspec.yaml like:</li>
 </ul>
 <pre><code class="yaml">

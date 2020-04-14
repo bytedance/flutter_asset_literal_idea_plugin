@@ -119,14 +119,15 @@ public class CompleteTest extends BasePlatformTestCase {
         List<String> strings = myFixture.getLookupElementStrings();
         // DINAlternateBold is declared in pubspec.yaml
         assertTrue(strings.containsAll(Arrays.asList(
+                "packages/xg_appearance/DINAlternateBold",
                 "DINAlternateBold",
                 "DIN Alternate",
                 "DIN Condensed",
                 "Zapf Dingbats",
-                "DINAlternateNumber",
-                "DIN_Alternate",
+                "packages/xg_appearance/DINAlternateNumber",
+                "packages/xg_appearance/DIN_Alternate",
                 "assets/flr/loading.flr"
         )));
-        assertEquals(7, strings.size());
+        assertEquals(8, strings.size());
     }
 }

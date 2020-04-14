@@ -1,1 +1,1 @@
-String test = "xg_appearance<caret>"
+String test = "xg_appearance/images<caret>"

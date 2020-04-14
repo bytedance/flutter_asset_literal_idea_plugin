@@ -23,10 +23,10 @@ public class ImageAsset extends Asset {
         if (StringUtil.isEmpty(packageName)) {
             return getName();
         }
-        if (packageName.contentEquals(getSourceDescription())) {
+        if (StringUtil.isEmpty(getSourceDescription())) {
             return getName();
         }
-        if (StringUtil.isEmpty(getSourceDescription())) {
+        if (packageName.contentEquals(getSourceDescription())) {
             return getName();
         }
         //this asset is not declared in 'packageName', so we return 'packages/{source_package}/name'
