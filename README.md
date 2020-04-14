@@ -136,3 +136,8 @@ Automatically help you complete the path of assets when you type a Dart string
               "serif",
               "Droid Sans",
 ```              
+
+
+## Thanks
+The svg decoder code is from the open source project 'Volantis Mobility Server CE',
+its source code can be found here: https://sourceforge.net/projects/volmobserverce/
