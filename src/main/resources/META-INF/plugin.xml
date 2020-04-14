@@ -3,6 +3,7 @@
     <name>FlutterAssetAutoCompletion</name>
     <vendor url="https://www.ixigua.com/">ixigua.com</vendor>
 
+
     <description><![CDATA[
     <h2>Automatically help you complete the path of assets when you type a Dart string</h2>
 <img src="https://i.imgur.com/Ssc3eMJ.gif" alt="demo"  width=480/>
@@ -139,7 +140,7 @@ IOS_8_FONT_LIST:
           &quot;serif&quot;,
           &quot;Droid Sans&quot;,
 </code></pre>
-<h3><a href="https://github.com/cikelengfeng/FlutterAssetAutoCompletionIssueTracker">Submit Issues</a></h3>
+<h3><a href="https://github.com/bytedance/flutter_asset_literal_idea_plugin">Submit Issues</a></h3>
     ]]></description>
 
 <!--    copy from Flutter plugin -->
