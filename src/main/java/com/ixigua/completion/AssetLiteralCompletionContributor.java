@@ -46,14 +46,15 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                LOG.info("asset literal prefix string " + prefix);
                // Find the pubspec file
                VirtualFile pubspec =  PubspecUtil.findPubspecYamlFile(parameters.getPosition().getProject(), parameters.getOriginalFile().getVirtualFile());
+               String packageName = PubspecUtil.getPackageName(pubspec);
 //               Find all assets that match this prefix
-               List<Asset> assets = assetsForPrefix(prefix, pubspec);
+               List<Asset> assets = assetsForPrefix(prefix, pubspec, packageName);
 //               We need to create a CompletionResultSet with the new PrefixMatcher, because the default PrefixMatcher
 //               may be different from what we want to handle.
                result = result.withPrefixMatcher(createPrefixMatcher(prefix)).caseInsensitive();
                for (Asset asset : assets) {
                    ProgressManager.checkCanceled();
-                   LookupElementBuilder elementBuilder = LookupElementBuilder.create(asset.lookupString());
+                   LookupElementBuilder elementBuilder = LookupElementBuilder.create(asset.lookupStringForPackage(packageName));
                    Icon icon = asset.icon();
                    if (icon != null) {
                        elementBuilder = elementBuilder.withIcon(icon);
@@ -70,7 +71,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
     }
 
     @NotNull
-    private static List<Asset> assetsForPrefix(@NotNull String prefix, VirtualFile pubspec) {
+    private static List<Asset> assetsForPrefix(@NotNull String prefix, VirtualFile pubspec, @NotNull String packageName) {
         if (prefix.isEmpty()) {
             LOG.error("dart string is empty");
             return Collections.emptyList();
@@ -81,7 +82,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
             LOG.error("all asset list is null");
             return Collections.emptyList();
         }
-        List<Asset> filteredAssets = filterAssets(assets, prefix);
+        List<Asset> filteredAssets = filterAssets(assets, prefix, packageName);
         if (filteredAssets == null) {
             LOG.error("filtered path list is null");
             return Collections.emptyList();
@@ -98,7 +99,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         return new PlainPrefixMatcher(prefix, false);
     }
 
-    private static  List<Asset> filterAssets(@NotNull List<Asset> paths, @NotNull String prefix) {
+    private static  List<Asset> filterAssets(@NotNull List<Asset> paths, @NotNull String prefix, @NotNull String packageName) {
         if (paths.isEmpty()) {
             return null;
         }
@@ -108,7 +109,7 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
             @Override
             public boolean test(Asset s) {
                 ProgressManager.checkCanceled();
-                return !matcher.prefixMatches(s.lookupString());
+                return !matcher.prefixMatches(s.lookupStringForPackage(packageName));
             }
         });
         return ret;

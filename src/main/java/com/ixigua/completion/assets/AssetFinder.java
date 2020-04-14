@@ -11,12 +11,11 @@ import com.ixigua.completion.fonts.AndroidFonts;
 import com.ixigua.completion.fonts.IOSFonts;
 import com.ixigua.completion.pubspec.PubspecUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class AssetFinder {
@@ -25,50 +24,85 @@ public class AssetFinder {
 
     // Parse all assets including:
     // 1. "assets" and "fonts" declarations in pubspec
-    // 2. pre-installed fonts on iOS and Android
-    @Nullable
+    // 2. "assets" and "fonts" declarations in dependent packages
+    // 3. pre-installed fonts on iOS and Android
+    @NotNull
     public static List<Asset> findAllAsset(VirtualFile pubspec) {
+        List<Asset> ret = new ArrayList<>();
+        ret.addAll(findAllAssetInPubspec(pubspec));
+        ret.addAll(allPreInstalledFonts());
+        return ret;
+    }
+
+    // Parse all assets directly defined in this pubspec including:
+    // 1. "assets" declarations
+    // 2. "fonts" declarations
+    @NotNull
+    private static List<Asset> findAllMyAssets(VirtualFile pubspec) {
         LOG.info("pubspec file " + pubspec);
         if (pubspec == null) {
             LOG.error("pub spec file is null");
-            return null;
+            return Collections.emptyList();
         }
         // parse the pubspec file
         Map<String, Object> pubInfo = PubspecUtil.getPubspecYamlInfo(pubspec);
         if (pubInfo == null) {
             LOG.error("pub spec info is null");
-            return null;
+            return Collections.emptyList();
         }
-
-        final List<Asset> assets = new ArrayList<>();
 
         // It is preferred to find the flutter statement, if there is no, then it is assumed that there are no assets
         Object flutterDeclaration = pubInfo.get("flutter");
         if (!(flutterDeclaration instanceof Map)) {
-            return null;
+            return Collections.emptyList();
         }
-        Object packageNameDeclaration = pubInfo.get("name");
-        String packageName = packageNameDeclaration instanceof String ? (String) packageNameDeclaration : null;
+        String packageName = PubspecUtil.getPackageName(pubInfo);
 //        Find all declarations under the "assets:" statement
         List<String> assetsDeclarations = findAssetsDeclarations((Map<String, Object>) flutterDeclaration);
 //        Expand all asset declarations，we will recursively traverse each declared
 //        folder, all sub-files of these folders will be included, which is different from the behavior of Flutter:
 //        Flutter will only include the direct children of each declared folder.
-        assets.addAll(expandAssetsDeclarations(pubspec, assetsDeclarations, packageName));
+        final List<Asset> assets = new ArrayList<>(expandAssetsDeclarations(pubspec, assetsDeclarations, packageName));
         // Find all declarations under the "fonts:" statement
         List<String> fontsDeclarations = findFontsDeclarations((Map<String, Object>) flutterDeclaration);
 //        Expand all font declarations, we only care about the font family and will not verify the existence of the font file
         assets.addAll(expandFontsDeclarations(fontsDeclarations, packageName));
+
+
+        LOG.info("find all assets" + assets);
+        return assets;
+    }
+
+    private static List<Asset> allPreInstalledFonts() {
         // Add all pre-installed fonts on iOS
         List<String> iOS9Fonts = Arrays.asList(IOSFonts.IOS_9_FONT_LIST);
-        assets.addAll(expandFontsDeclarations(iOS9Fonts, "iOS 9 Font"));
+        final List<Asset> assets = new ArrayList<>(expandFontsDeclarations(iOS9Fonts, "iOS 9 Font"));
         List<String> iOS8Fonts = Arrays.asList(IOSFonts.IOS_8_FONT_LIST);
         assets.addAll(expandFontsDeclarations(iOS8Fonts, "iOS 8 Font"));
         //Add all pre-installed fonts on Android
         List<String> androidFonts = Arrays.asList(AndroidFonts.FONT_LIST);
         assets.addAll(expandFontsDeclarations(androidFonts, "Android Font"));
+        return assets;
+    }
 
-        LOG.info("find all assets" + assets);
+    // A package may depend on packages listed in '.packages', parse all assets defined in those pubspec files including:
+    // 1. "assets" declarations
+    // 2. "fonts" declarations
+    @NotNull
+    private static List<Asset> findAllAssetInPubspec(VirtualFile pubspec) {
+        if (pubspec == null) {
+            LOG.error("pub spec file is null");
+            return Collections.emptyList();
+        }
+        Map<String, VirtualFile> allPubspecFiles = PubspecUtil.findAllDependentPubspecFiles(pubspec);
+        List<Asset> assets = new ArrayList<>();
+        allPubspecFiles.forEach(new BiConsumer<String, VirtualFile>() {
+            @Override
+            public void accept(String s, VirtualFile virtualFile) {
+                List<Asset> assetsInThisPackage = findAllMyAssets(virtualFile);
+                assets.addAll(assetsInThisPackage);
+            }
+        });
         return assets;
     }
 
@@ -83,10 +117,10 @@ public class AssetFinder {
             ProgressManager.checkCanceled();
             // There may be empty elements under "assets" state，
             // like:
-            // assets:
-            //   - images
-            //   -
-            // The second line will be parsed as null
+            // 1. assets:
+            // 2.  - images
+            // 3.  -
+            // The third line will be parsed as null
             return o == null;
         });
         return (List<String>) ats;
@@ -125,20 +159,6 @@ public class AssetFinder {
                     }
                 }
                 if (child == null) {
-                    // Flutter also supports referencing dependent library assets in "packages/xx_lib/yy" mode. If this
-                    // is the case, we can't determine whether the file really exists for the time being, and directly
-                    // count it as a candidate entry.
-                    String[] splited = declaration.split("/");
-                    if (splited.length < 3) {
-                        return;
-                    }
-                    if (!splited[0].contentEquals("packages")) {
-                        return;
-                    }
-                    if (splited[1].isEmpty()) {
-                        return;
-                    }
-                    ret.add(new ImageAsset(declaration,null,splited[1]));
                     return;
                 }
                 LOG.info("find assets file " + child);

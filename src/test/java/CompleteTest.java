@@ -13,23 +13,33 @@ public class CompleteTest extends BasePlatformTestCase {
         return "src/test/testData";
     }
 
-    public void testCompletionNormalAsset() {
-//      BasePlatformTestCase will create an in-memory editor, we can simulate the user's editing behavior through myFixture
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        copyFilesToProject();
+    }
 
-//      We can copy the test resource file to the editor through the copyDirectoryToProject method
+    private void copyFilesToProject() {
+        //      We can copy the test resource file to the editor through the copyDirectoryToProject method
 
 //      Here we add the assets folder, pubspec.yaml, and other resource files to the editor. you can see the directory
 //      structure of these files under the src/test/testData folder
-        myFixture.copyDirectoryToProject("assets", "assets");
-        myFixture.copyFileToProject("pubspec.yaml");
+        myFixture.copyDirectoryToProject("flutter_asset_literal_test", "flutter_asset_literal_test");
+        myFixture.copyDirectoryToProject("xg_appearance-0.1.4", "xg_appearance-0.1.4");
+    }
+
+    public void testCompletionNormalAsset() {
+//      BasePlatformTestCase will create an in-memory editor, we can simulate the user's editing behavior through myFixture
+
 //      We can use the configureByFiles method to let the editor open a file, just like we are editing this file,
 //      the operations we will simulate in the future will happen in this file.
 //      and you may notice this string "<caret>" in the CompleteTestData.dart file，it is used to simulate the user's
 //      current cursor position.
-        myFixture.configureByFiles("CompleteTestData.dart");
+        myFixture.configureByFiles("flutter_asset_literal_test/lib/CompleteTestData.dart");
         myFixture.complete(CompletionType.BASIC, 1);
         List<String> strings = myFixture.getLookupElementStrings();
-        assertTrue(strings.containsAll(Arrays.asList("assets/flr/loading.flr",
+        assertTrue(strings.containsAll(Arrays.asList(
+                "assets/flr/loading.flr",
                 "assets/json/abc.json",
                 "assets/images/bmp/XING_B24.bmp",
                 "assets/images/jpg/long.jpg",
@@ -45,14 +55,15 @@ public class CompleteTest extends BasePlatformTestCase {
                 "assets/images/png/unlock.png",
                 "assets/images/png/zoom_in.png",
                 "assets/images/png/pause.png",
-                "assets/images/gif/flutter_asset_completion.gif")));
-        assertEquals(17, strings.size());
+                "assets/images/gif/flutter_asset_completion.gif",
+                "asset_in_Lib.png",
+                "othor_assets/some.xml"
+        )));
+        assertEquals(19, strings.size());
     }
 
     public void testCompletionInLib() {
-        myFixture.copyDirectoryToProject("lib", "lib");
-        myFixture.copyFileToProject("pubspec.yaml");
-        myFixture.configureByFiles("CompleteTestDataInLib.dart");
+        myFixture.configureByFiles("flutter_asset_literal_test/lib/CompleteTestDataInLib.dart");
         myFixture.complete(CompletionType.BASIC, 1);
         List<String> strings = myFixture.getLookupElementStrings();
         assertTrue(strings.containsAll(Arrays.asList("asset_in_Lib.png")));
@@ -60,20 +71,21 @@ public class CompleteTest extends BasePlatformTestCase {
     }
 
     public void testCompletionInDependency() {
-        myFixture.copyFileToProject("pubspec.yaml");
-        myFixture.configureByFiles("CompleteTestDataInDependency.dart");
+        myFixture.configureByFiles("flutter_asset_literal_test/lib/CompleteTestDataInDependency.dart");
         myFixture.complete(CompletionType.BASIC, 1);
         List<String> strings = myFixture.getLookupElementStrings();
         assertTrue(strings.containsAll(Arrays.asList(
-                "packages/fancy_images/image_1.png",
-                "packages/fancy_images/image_2.png"
+                "packages/xg_appearance/images/arrow_right.png",
+                "packages/xg_appearance/images/arrow_right_dark.png",
+                "packages/xg_appearance/images/check_selected.png",
+                "packages/xg_appearance/images/check_unselected.png",
+                "packages/xg_appearance/images/display_count_img.png"
         )));
-        assertEquals(2, strings.size());
+        assertEquals(5, strings.size());
     }
 
     public void testCompletionForPreInstalledFont() {
-        myFixture.copyFileToProject("pubspec.yaml");
-        myFixture.configureByFiles("CompleteTestDataForPreInstalledFont.dart");
+        myFixture.configureByFiles("flutter_asset_literal_test/lib/CompleteTestDataForPreInstalledFont.dart");
         myFixture.complete(CompletionType.BASIC, 1);
         List<String> strings = myFixture.getLookupElementStrings();
         assertTrue(strings.containsAll(Arrays.asList(
@@ -101,8 +113,7 @@ public class CompleteTest extends BasePlatformTestCase {
     }
 
     public void testCompletionForPubspecFont() {
-        myFixture.copyFileToProject("pubspec.yaml");
-        myFixture.configureByFiles("CompleteTestDataForPubspecFont.dart");
+        myFixture.configureByFiles("flutter_asset_literal_test/lib/CompleteTestDataForPubspecFont.dart");
         
         myFixture.complete(CompletionType.BASIC, 1);
         List<String> strings = myFixture.getLookupElementStrings();
@@ -111,8 +122,11 @@ public class CompleteTest extends BasePlatformTestCase {
                 "DINAlternateBold",
                 "DIN Alternate",
                 "DIN Condensed",
-                "Zapf Dingbats"
+                "Zapf Dingbats",
+                "DINAlternateNumber",
+                "DIN_Alternate",
+                "assets/flr/loading.flr"
         )));
-        assertEquals(4, strings.size());
+        assertEquals(7, strings.size());
     }
 }

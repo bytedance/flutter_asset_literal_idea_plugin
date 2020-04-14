@@ -18,7 +18,7 @@ public class FontAsset extends Asset {
 
     @NotNull
     @Override
-    public String lookupString() {
+    public String lookupStringForPackage(String packageName) {
         return getName();
     }
 
