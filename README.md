@@ -20,9 +20,11 @@ Automatically help you complete the path of assets when you type a Dart string
 ```
         assets:
           - image.png
-``` 
+```
+ 
+*   assets declared in pubspec.yaml of other packages
 
-*   assets in other packages like:
+*   assets in lib/ of other packages and declared in pubspec.yaml of current package like:
 
 ```    
         assets:

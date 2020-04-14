@@ -24,7 +24,10 @@
       - image.png
 </code></pre>
 <ul>
-  <li>assets in other packages like:</li>
+  <li>assets declared in pubspec.yaml of other packages</li>
+</ul>
+<ul>
+  <li>assets in lib/ of other packages and declared in pubspec.yaml of current package like:</li>
 </ul>
 <pre><code class="yaml">
     assets:
