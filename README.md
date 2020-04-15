@@ -22,7 +22,7 @@ Automatically help you complete the path of assets when you type a Dart string
           - image.png
 ```
  
-*   assets declared in pubspec.yaml of other packages
+*   assets declared in pubspec.yaml of other packages.
 
 *   assets in lib/ of other packages and declared in pubspec.yaml of current package like:
 
@@ -33,6 +33,8 @@ Automatically help you complete the path of assets when you type a Dart string
 
 ### Support for fonts
 
+*   fonts declared in pubspec.yaml of other packages.
+
 *   normal fonts declared in pubspec.yaml like:
 
 ```    
@@ -42,7 +44,7 @@ Automatically help you complete the path of assets when you type a Dart string
               - asset: fonts/Andale Mono.ttf
 ```    
 
-*   iOS pre-installed fonts
+*   iOS pre-installed fonts:
 ```
     IOS_9_FONT_LIST:
               "PingFang HK",
@@ -128,7 +130,7 @@ Automatically help you complete the path of assets when you type a Dart string
               "Zapfino",
 ```    
 
-*   Android pre-installed fonts
+*   Android pre-installed fonts:
 
 ```
               "sans-serif",
