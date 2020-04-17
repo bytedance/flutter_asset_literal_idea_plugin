@@ -3,6 +3,7 @@ import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class CompleteTest extends BasePlatformTestCase {
@@ -38,6 +39,7 @@ public class CompleteTest extends BasePlatformTestCase {
         myFixture.configureByFiles("flutter_asset_literal_test/lib/CompleteTestData.dart");
         myFixture.complete(CompletionType.BASIC, 1);
         List<String> strings = myFixture.getLookupElementStrings();
+        assertNotNull(strings);
         assertTrue(strings.containsAll(Arrays.asList(
                 "assets/flr/loading.flr",
                 "assets/json/abc.json",
@@ -66,7 +68,8 @@ public class CompleteTest extends BasePlatformTestCase {
         myFixture.configureByFiles("flutter_asset_literal_test/lib/CompleteTestDataInLib.dart");
         myFixture.complete(CompletionType.BASIC, 1);
         List<String> strings = myFixture.getLookupElementStrings();
-        assertTrue(strings.containsAll(Arrays.asList("asset_in_Lib.png")));
+        assertNotNull(strings);
+        assertTrue(strings.contains("asset_in_Lib.png"));
         assertEquals(1, strings.size());
     }
 
@@ -74,6 +77,7 @@ public class CompleteTest extends BasePlatformTestCase {
         myFixture.configureByFiles("flutter_asset_literal_test/lib/CompleteTestDataInDependency.dart");
         myFixture.complete(CompletionType.BASIC, 1);
         List<String> strings = myFixture.getLookupElementStrings();
+        assertNotNull(strings);
         assertTrue(strings.containsAll(Arrays.asList(
                 "packages/xg_appearance/images/arrow_right.png",
                 "packages/xg_appearance/images/arrow_right_dark.png",
@@ -88,6 +92,7 @@ public class CompleteTest extends BasePlatformTestCase {
         myFixture.configureByFiles("flutter_asset_literal_test/lib/CompleteTestDataForPreInstalledFont.dart");
         myFixture.complete(CompletionType.BASIC, 1);
         List<String> strings = myFixture.getLookupElementStrings();
+        assertNotNull(strings);
         assertTrue(strings.containsAll(Arrays.asList(
                 "sans-serif",
                 "sans-serif-condensed",
@@ -117,6 +122,7 @@ public class CompleteTest extends BasePlatformTestCase {
         
         myFixture.complete(CompletionType.BASIC, 1);
         List<String> strings = myFixture.getLookupElementStrings();
+        assertNotNull(strings);
         // DINAlternateBold is declared in pubspec.yaml
         assertTrue(strings.containsAll(Arrays.asList(
                 "packages/xg_appearance/DINAlternateBold",
@@ -129,5 +135,14 @@ public class CompleteTest extends BasePlatformTestCase {
                 "assets/flr/loading.flr"
         )));
         assertEquals(8, strings.size());
+    }
+
+    public void testCompletionInDependentLib() {
+        myFixture.configureByFiles("flutter_asset_literal_test/lib/CompleteTestDataInDependentLib.dart");
+        myFixture.complete(CompletionType.BASIC, 1);
+        List<String> strings = myFixture.getLookupElementStrings();
+        assertNotNull(strings);
+        assertTrue(strings.contains("packages/xg_appearance/smoke.png"));
+        assertEquals(1, strings.size());
     }
 }

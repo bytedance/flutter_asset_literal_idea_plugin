@@ -11,7 +11,7 @@ publishPlugin {
 }
 
 group 'com.ixigua'
-version '1.5.2'
+version '1.5.3'
 
 sourceCompatibility = 1.8
 
@@ -44,6 +44,10 @@ runIde {
 
 patchPluginXml {
     changeNotes """
+    <h1>1.5.3</h1>
+    <ul>
+      <li> bugfix: assets in lib/ of other packages and declared in pubspec.yaml of current package </li>
+    </ul>
     <h1>1.5.2</h1>
     <ul>
       <li> Support to complete the fonts in the sub-packages listed in the '.package' file </li>

@@ -3,13 +3,14 @@ package com.ixigua.completion.assets;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VFileProperty;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
+import com.ixigua.completion.contributor.CompletionContext;
 import com.ixigua.completion.fonts.AndroidFonts;
 import com.ixigua.completion.fonts.IOSFonts;
-import com.ixigua.completion.pubspec.PubspecUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -27,9 +28,9 @@ public class AssetFinder {
     // 2. "assets" and "fonts" declarations in dependent packages
     // 3. pre-installed fonts on iOS and Android
     @NotNull
-    public static List<Asset> findAllAsset(VirtualFile pubspec) {
+    public static List<Asset> findAllAsset(@NotNull CompletionContext context) {
         List<Asset> ret = new ArrayList<>();
-        ret.addAll(findAllAssetInPubspec(pubspec));
+        ret.addAll(findAllAssetInPubspec(context));
         ret.addAll(allPreInstalledFonts());
         return ret;
     }
@@ -38,31 +39,24 @@ public class AssetFinder {
     // 1. "assets" declarations
     // 2. "fonts" declarations
     @NotNull
-    private static List<Asset> findAllMyAssets(VirtualFile pubspec) {
+    private static List<Asset> findAllMyAssets(@NotNull CompletionContext context) {
+        VirtualFile pubspec = context.getPubspec();
         LOG.info("pubspec file " + pubspec);
-        if (pubspec == null) {
-            LOG.error("pub spec file is null");
-            return Collections.emptyList();
-        }
         // parse the pubspec file
-        Map<String, Object> pubInfo = PubspecUtil.getPubspecYamlInfo(pubspec);
-        if (pubInfo == null) {
-            LOG.error("pub spec info is null");
-            return Collections.emptyList();
-        }
+        Map<String, Object> pubInfo = context.getPubspecInfoOfCurrentProject();
 
         // It is preferred to find the flutter statement, if there is no, then it is assumed that there are no assets
         Object flutterDeclaration = pubInfo.get("flutter");
         if (!(flutterDeclaration instanceof Map)) {
             return Collections.emptyList();
         }
-        String packageName = PubspecUtil.getPackageName(pubInfo);
+        String packageName = context.getPackageName();
 //        Find all declarations under the "assets:" statement
         List<String> assetsDeclarations = findAssetsDeclarations((Map<String, Object>) flutterDeclaration);
 //        Expand all asset declarations，we will recursively traverse each declared
 //        folder, all sub-files of these folders will be included, which is different from the behavior of Flutter:
 //        Flutter will only include the direct children of each declared folder.
-        final List<Asset> assets = new ArrayList<>(expandAssetsDeclarations(pubspec, assetsDeclarations, packageName));
+        final List<Asset> assets = new ArrayList<>(expandAssetsDeclarations(context, assetsDeclarations));
         // Find all declarations under the "fonts:" statement
         List<String> fontsDeclarations = findFontsDeclarations((Map<String, Object>) flutterDeclaration);
 //        Expand all font declarations, we only care about the font family and will not verify the existence of the font file
@@ -89,17 +83,12 @@ public class AssetFinder {
     // 1. "assets" declarations
     // 2. "fonts" declarations
     @NotNull
-    private static List<Asset> findAllAssetInPubspec(VirtualFile pubspec) {
-        if (pubspec == null) {
-            LOG.error("pub spec file is null");
-            return Collections.emptyList();
-        }
-        Map<String, VirtualFile> allPubspecFiles = PubspecUtil.findAllDependentPubspecFiles(pubspec);
+    private static List<Asset> findAllAssetInPubspec(@NotNull CompletionContext context) {
         List<Asset> assets = new ArrayList<>();
-        allPubspecFiles.forEach(new BiConsumer<String, VirtualFile>() {
+        context.getChildren().forEach(new BiConsumer<String, CompletionContext>() {
             @Override
-            public void accept(String s, VirtualFile virtualFile) {
-                List<Asset> assetsInThisPackage = findAllMyAssets(virtualFile);
+            public void accept(String s, CompletionContext context) {
+                List<Asset> assetsInThisPackage = findAllMyAssets(context);
                 assets.addAll(assetsInThisPackage);
             }
         });
@@ -127,7 +116,7 @@ public class AssetFinder {
     }
 
     @NotNull
-    private static List<Asset> expandAssetsDeclarations(@NotNull VirtualFile pubspec, @NotNull List<String> declarations, String currentPackage) {
+    private static List<Asset> expandAssetsDeclarations(@NotNull CompletionContext context, @NotNull List<String> declarations) {
         List<Asset> ret = new ArrayList<>();
         declarations.forEach(new Consumer<String>() {
             @Override
@@ -137,6 +126,7 @@ public class AssetFinder {
                 if (declaration == null) {
                     return;
                 }
+                VirtualFile pubspec = context.getPubspec();
                 VirtualFile parent = pubspec.getParent();
                 VirtualFile child = null;
                 try {
@@ -159,6 +149,29 @@ public class AssetFinder {
                     }
                 }
                 if (child == null) {
+                    // Flutter also supports referencing dependent package assets in "packages/xx_lib/yy" mode.
+                    String[] segmented = declaration.split("/");
+                    if (segmented.length < 3) {
+                        return;
+                    }
+                    if (!segmented[0].contentEquals("packages")) {
+                        return;
+                    }
+                    String packageName = segmented[1];
+                    if (StringUtil.isEmpty(packageName)) {
+                        return;
+                    }
+                    String assetName = segmented[2];
+                    if (StringUtil.isEmpty(assetName)) {
+                        return;
+                    }
+                    CompletionContext childContext = context.getChild(packageName);
+                    VirtualFile assetFile = null;
+                    if (childContext != null) {
+                        VirtualFile childPackageRoot = childContext.getPubspec().getParent();
+                        assetFile = childPackageRoot.findFileByRelativePath("lib/" + assetName);
+                    }
+                    ret.add(new ImageAsset(assetName, assetFile, packageName));
                     return;
                 }
                 LOG.info("find assets file " + child);
@@ -169,7 +182,7 @@ public class AssetFinder {
                 List<Asset> assets = filePairs.stream().map(new Function<Pair<String, VirtualFile>, Asset>() {
                     @Override
                     public Asset apply(Pair<String, VirtualFile> stringVirtualFilePair) {
-                        return new ImageAsset(stringVirtualFilePair.first, stringVirtualFilePair.second, currentPackage);
+                        return new ImageAsset(stringVirtualFilePair.first, stringVirtualFilePair.second, context.getPackageName());
                     }
                 }).collect(Collectors.toList());
                 ret.addAll(assets);
@@ -211,7 +224,6 @@ public class AssetFinder {
 
     @NotNull
     private static List<Asset> expandFontsDeclarations(@NotNull List<String> declarations, String currentPackage) {
-        List<Asset> ret = new ArrayList<>();
         return declarations.stream().map(new Function<String, Asset>() {
             @Override
             public Asset apply(String s) {

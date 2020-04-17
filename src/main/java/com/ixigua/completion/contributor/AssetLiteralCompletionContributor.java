@@ -1,4 +1,4 @@
-package com.ixigua.completion;
+package com.ixigua.completion.contributor;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
@@ -18,7 +18,6 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 
 import static com.intellij.codeInsight.completion.CompletionUtilCore.DUMMY_IDENTIFIER;
 
@@ -29,13 +28,6 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
     public AssetLiteralCompletionContributor() {
         SVGActivator svgActivator = new SVGActivator();
         svgActivator.activate();
-//        IIORegistry iioRegistry = IIORegistry.getDefaultInstance();
-//        iioRegistry.getServiceProviders(ImageReaderSpi.class, true).forEachRemaining(new Consumer<ImageReaderSpi>() {
-//            @Override
-//            public void accept(ImageReaderSpi imageReaderSpi) {
-//                System.out.println("image reader vendor: " + imageReaderSpi.getVendorName() + " desc: " + imageReaderSpi.getDescription(Locale.getDefault()));
-//            }
-//        });
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(DartTokenTypes.REGULAR_STRING_PART), new CompletionProvider<CompletionParameters>() {
 
            @Override
@@ -46,9 +38,10 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
                LOG.info("asset literal prefix string " + prefix);
                // Find the pubspec file
                VirtualFile pubspec =  PubspecUtil.findPubspecYamlFile(parameters.getPosition().getProject(), parameters.getOriginalFile().getVirtualFile());
-               String packageName = PubspecUtil.getPackageName(pubspec);
+               CompletionContext completionContext = new CompletionContext(pubspec, prefix);
+               String packageName = completionContext.getPackageName();
 //               Find all assets that match this prefix
-               List<Asset> assets = assetsForPrefix(prefix, pubspec, packageName);
+               List<Asset> assets = assetsForPrefix(completionContext);
 //               We need to create a CompletionResultSet with the new PrefixMatcher, because the default PrefixMatcher
 //               may be different from what we want to handle.
                result = result.withPrefixMatcher(createPrefixMatcher(prefix)).caseInsensitive();
@@ -71,18 +64,14 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
     }
 
     @NotNull
-    private static List<Asset> assetsForPrefix(@NotNull String prefix, VirtualFile pubspec, @NotNull String packageName) {
+    private static List<Asset> assetsForPrefix(@NotNull CompletionContext context) {
+        String prefix = context.getPrefix();
         if (prefix.isEmpty()) {
             LOG.error("dart string is empty");
             return Collections.emptyList();
         }
-        List<Asset> assets = AssetFinder.findAllAsset(pubspec);
-
-        if (assets == null) {
-            LOG.error("all asset list is null");
-            return Collections.emptyList();
-        }
-        List<Asset> filteredAssets = filterAssets(assets, prefix, packageName);
+        List<Asset> assets = AssetFinder.findAllAsset(context);
+        List<Asset> filteredAssets = filterAssets(assets, context);
         if (filteredAssets == null) {
             LOG.error("filtered path list is null");
             return Collections.emptyList();
@@ -99,18 +88,15 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
         return new PlainPrefixMatcher(prefix, false);
     }
 
-    private static  List<Asset> filterAssets(@NotNull List<Asset> paths, @NotNull String prefix, @NotNull String packageName) {
+    private static  List<Asset> filterAssets(@NotNull List<Asset> paths, @NotNull CompletionContext context) {
         if (paths.isEmpty()) {
             return null;
         }
-        PrefixMatcher matcher = createPrefixMatcher(prefix);
-        List<Asset> ret = new ArrayList<Asset>(paths);
-        ret.removeIf(new Predicate<Asset>() {
-            @Override
-            public boolean test(Asset s) {
-                ProgressManager.checkCanceled();
-                return !matcher.prefixMatches(s.lookupStringForPackage(packageName));
-            }
+        PrefixMatcher matcher = createPrefixMatcher(context.getPrefix());
+        List<Asset> ret = new ArrayList<>(paths);
+        ret.removeIf(s -> {
+            ProgressManager.checkCanceled();
+            return !matcher.prefixMatches(s.lookupStringForPackage(context.getPackageName()));
         });
         return ret;
     }

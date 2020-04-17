@@ -155,7 +155,7 @@ IOS_8_FONT_LIST:
 
     <extensions defaultExtensionNs="com.intellij">
         <completion.contributor language="Dart"
-                                implementationClass="com.ixigua.completion.AssetLiteralCompletionContributor" order="first"/>
+                                implementationClass="com.ixigua.completion.contributor.AssetLiteralCompletionContributor" order="first"/>
     </extensions>
 
     <actions>
