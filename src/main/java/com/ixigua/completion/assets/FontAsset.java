@@ -12,9 +12,9 @@ import javax.swing.*;
 public class FontAsset extends Asset {
 
     private static final Logger LOG = Logger.getInstance(FontAsset.class);
-    static final String PRE_INSTALLED_IOS_8_SOURCE = "iOS 8 Font";
-    static final String PRE_INSTALLED_IOS_9_SOURCE = "iOS 9 Font";
-    static final String PRE_INSTALLED_Android_SOURCE = "Android Font";
+    static final String PRE_INSTALLED_IOS_8_SOURCE = "iOS 8 Fonts";
+    static final String PRE_INSTALLED_IOS_9_SOURCE = "iOS 9 Fonts";
+    static final String PRE_INSTALLED_Android_SOURCE = "Android Fonts";
 
     public FontAsset(@NotNull String name, @Nullable VirtualFile file, @Nullable String sourceDescription) {
         super(name, file, sourceDescription);
@@ -41,7 +41,7 @@ public class FontAsset extends Asset {
         if (getSourceDescription().contentEquals(PRE_INSTALLED_Android_SOURCE)) {
             return getName();
         }
-        //this font is not declared in 'packageName', so we return 'packages/{source_package}/name'
+        //the package named with 'packageName' dos't declare this font, so we return 'packages/{source_package}/name'
         return "packages/" + getSourceDescription() + "/" + getName();
     }
 

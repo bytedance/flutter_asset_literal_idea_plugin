@@ -77,12 +77,4 @@ public class CompletionContext {
         return getChildren().get(packageName);
     }
 
-    @NotNull
-    public Map<String, Object> getPubspecInfo(String packageName) {
-        CompletionContext context = getChildren().get(packageName);
-        if (context == null) {
-            return Collections.emptyMap();
-        }
-        return context.getPubspecInfoOfCurrentProject();
-    }
 }

@@ -33,8 +33,8 @@ public abstract class Asset {
     }
 
 
-    // lookup string for package, 'packageName' is the package's name to which the file being edited belongs
-    // let's say we have two packages: PA and PB, PA depend on PB and there is an image named 'B.png' in PB.
+    // lookup string for package, 'packageName' is the package's name to which the edited file belongs.
+    // let's say we have two packages: PA and PB, PA depends on PB and there is an image named 'B.png' in PB.
     // when user type 'B.png' in PA's dart file,  lookupStringForPackage will be called with 'PA'.
     // when user type 'B.png' in PB's dart file,  lookupStringForPackage will be called with 'PB'.
     // subclasses can choose to return different lookup strings according to different package names

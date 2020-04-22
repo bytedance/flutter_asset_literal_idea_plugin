@@ -14,19 +14,20 @@ import com.ixigua.completion.fonts.IOSFonts;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.ixigua.completion.assets.FontAsset.*;
 
 public class AssetFinder {
 
     private static final Logger LOG = Logger.getInstance(AssetFinder.class);
 
     // Parse all assets including:
-    // 1. "assets" and "fonts" declarations in pubspec
-    // 2. "assets" and "fonts" declarations in dependent packages
-    // 3. pre-installed fonts on iOS and Android
+    // 1. "assets" and "fonts" declarations in pubspec.
+    // 2. "assets" and "fonts" declarations in dependent packages.
+    // 3. pre-installed fonts on iOS and Android.
     @NotNull
     public static List<Asset> findAllAsset(@NotNull CompletionContext context) {
         List<Asset> ret = new ArrayList<>();
@@ -36,8 +37,8 @@ public class AssetFinder {
     }
 
     // Parse all assets directly defined in this pubspec including:
-    // 1. "assets" declarations
-    // 2. "fonts" declarations
+    // 1. "assets" declarations.
+    // 2. "fonts" declarations.
     @NotNull
     private static List<Asset> findAllMyAssets(@NotNull CompletionContext context) {
         VirtualFile pubspec = context.getPubspec();
@@ -45,7 +46,7 @@ public class AssetFinder {
         // parse the pubspec file
         Map<String, Object> pubInfo = context.getPubspecInfoOfCurrentProject();
 
-        // It is preferred to find the flutter statement, if there is no, then it is assumed that there are no assets
+        // It is preferred to find the flutter statement, if there is no, then we assume that there are no assets
         Object flutterDeclaration = pubInfo.get("flutter");
         if (!(flutterDeclaration instanceof Map)) {
             return Collections.emptyList();
@@ -70,27 +71,24 @@ public class AssetFinder {
     private static List<Asset> allPreInstalledFonts() {
         // Add all pre-installed fonts on iOS
         List<String> iOS9Fonts = Arrays.asList(IOSFonts.IOS_9_FONT_LIST);
-        final List<Asset> assets = new ArrayList<>(expandFontsDeclarations(iOS9Fonts, "iOS 9 Font"));
+        final List<Asset> assets = new ArrayList<>(expandFontsDeclarations(iOS9Fonts, PRE_INSTALLED_IOS_9_SOURCE));
         List<String> iOS8Fonts = Arrays.asList(IOSFonts.IOS_8_FONT_LIST);
-        assets.addAll(expandFontsDeclarations(iOS8Fonts, "iOS 8 Font"));
+        assets.addAll(expandFontsDeclarations(iOS8Fonts, PRE_INSTALLED_IOS_8_SOURCE));
         //Add all pre-installed fonts on Android
         List<String> androidFonts = Arrays.asList(AndroidFonts.FONT_LIST);
-        assets.addAll(expandFontsDeclarations(androidFonts, "Android Font"));
+        assets.addAll(expandFontsDeclarations(androidFonts, PRE_INSTALLED_Android_SOURCE));
         return assets;
     }
 
     // A package may depend on packages listed in '.packages', parse all assets defined in those pubspec files including:
-    // 1. "assets" declarations
-    // 2. "fonts" declarations
+    // 1. "assets" declarations.
+    // 2. "fonts" declarations.
     @NotNull
     private static List<Asset> findAllAssetInPubspec(@NotNull CompletionContext context) {
         List<Asset> assets = new ArrayList<>();
-        context.getChildren().forEach(new BiConsumer<String, CompletionContext>() {
-            @Override
-            public void accept(String s, CompletionContext context) {
-                List<Asset> assetsInThisPackage = findAllMyAssets(context);
-                assets.addAll(assetsInThisPackage);
-            }
+        context.getChildren().forEach((s, context1) -> {
+            List<Asset> assetsInThisPackage = findAllMyAssets(context1);
+            assets.addAll(assetsInThisPackage);
         });
         return assets;
     }
@@ -132,7 +130,7 @@ public class AssetFinder {
                 try {
                     child = parent.findFileByRelativePath(declaration);
                 } catch (Exception e) {
-                    LOG.error("find normal asset failed " + e);
+                    LOG.error("find the normal asset failed " + e);
                 }
 
                 if (child == null) {

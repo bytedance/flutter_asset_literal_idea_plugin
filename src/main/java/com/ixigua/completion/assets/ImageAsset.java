@@ -29,7 +29,7 @@ public class ImageAsset extends Asset {
         if (packageName.contentEquals(getSourceDescription())) {
             return getName();
         }
-        //this asset is not declared in 'packageName', so we return 'packages/{source_package}/name'
+        //the package named with 'packageName' dos't declare this asset, so we return 'packages/{source_package}/name'.
         return "packages/" + getSourceDescription() + "/" + getName();
     }
 

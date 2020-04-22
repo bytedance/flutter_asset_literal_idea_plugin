@@ -22,7 +22,7 @@ public class CompleteTest extends BasePlatformTestCase {
     private void copyFilesToProject() {
         //      We can copy the test resource file to the editor through the copyDirectoryToProject method
 
-//      Here we add the assets folder, pubspec.yaml, and other resource files to the editor. you can see the directory
+//      Here we add the assets' directory, pubspec.yaml, and other resource files to the editor. you can see the directory
 //      structure of these files under the src/test/testData folder
         myFixture.copyDirectoryToProject("flutter_asset_literal_test", "flutter_asset_literal_test");
         myFixture.copyDirectoryToProject("xg_appearance", "xg_appearance");

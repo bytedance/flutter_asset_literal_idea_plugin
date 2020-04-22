@@ -4,6 +4,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.IconUtil;
 import com.ixigua.completion.transform.TransformImage;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
@@ -48,12 +49,12 @@ public class IconDecorator {
         }
 
         icon = create(iconImage, cacheKey);
-        LOG.info("created new icon, key: " + cacheKey);
+        LOG.info("created a new icon, key: " + cacheKey);
         return icon;
     }
 
     @Nullable
-    private static Icon create(@Nullable BufferedImage image, @Nullable String cacheKey) {
+    private static Icon create(@NotNull BufferedImage image, @Nullable String cacheKey) {
         Icon icon = null;
         try {
             Image outputImage = TransformImage.resizeAspectFitCenter(image, ICON_WIDTH, ICON_HEIGHT);
@@ -77,6 +78,7 @@ public class IconDecorator {
         } catch (Exception e) {
             LOG.error("read font icon failed " + e);
         }
+        assert iconImage != null;
         DEFAULT_FONT_ICON = create(iconImage, null);
         return DEFAULT_FONT_ICON;
     }
@@ -91,6 +93,7 @@ public class IconDecorator {
         } catch (Exception e) {
             LOG.error("read font icon failed " + e);
         }
+        assert iconImage != null;
         BLANK_ICON = create(iconImage, null);
         return BLANK_ICON;
     }

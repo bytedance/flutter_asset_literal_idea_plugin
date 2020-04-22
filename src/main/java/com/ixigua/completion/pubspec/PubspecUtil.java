@@ -39,16 +39,6 @@ public class PubspecUtil {
     }
 
     @NotNull
-    public static String getPackageName(@NotNull VirtualFile pubspecYamlFile) {
-        Map<String, Object> pubInfo = getPubspecYamlInfo(pubspecYamlFile);
-        if (pubInfo == null) {
-            LOG.error("pub spec info is null");
-            return "";
-        }
-        return getPackageName(pubInfo);
-    }
-
-    @NotNull
     public static String getPackageName(@NotNull Map<String, Object> pubspecInfo) {
         Object packageNameDeclaration = pubspecInfo.get("name");
         return packageNameDeclaration instanceof String ? (String) packageNameDeclaration : "";
@@ -58,11 +48,11 @@ public class PubspecUtil {
     @Nullable
     public static Map<String, Object> getPubspecYamlInfo(@NotNull VirtualFile pubspecYamlFile) {
 
-        Pair<Long, Map<String, Object>> data = (Pair<Long, Map<String, Object>>)pubspecYamlFile.getUserData(MOD_STAMP_TO_PUBSPEC_NAME);
+        Pair<Long, Map<String, Object>> data = pubspecYamlFile.getUserData(MOD_STAMP_TO_PUBSPEC_NAME);
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
         Document cachedDocument = documentManager.getCachedDocument(pubspecYamlFile);
         Long currentTimestamp = cachedDocument != null ? cachedDocument.getModificationStamp() : pubspecYamlFile.getModificationCount();
-        Long cachedTimestamp = (Long)Pair.getFirst(data);
+        Long cachedTimestamp = Pair.getFirst(data);
         if (cachedTimestamp == null || !cachedTimestamp.equals(currentTimestamp)) {
             data = null;
             pubspecYamlFile.putUserData(MOD_STAMP_TO_PUBSPEC_NAME, null);
@@ -83,7 +73,7 @@ public class PubspecUtil {
             }
         }
 
-        return (Map<String, Object>)Pair.getSecond(data);
+        return Pair.getSecond(data);
     }
 
     @Nullable
@@ -93,7 +83,7 @@ public class PubspecUtil {
             protected void addImplicitResolvers() {
                 this.addImplicitResolver(Tag.BOOL, BOOL, "yYnNtTfFoO");
                 this.addImplicitResolver(Tag.NULL, NULL, "~nN\u0000");
-                this.addImplicitResolver(Tag.NULL, EMPTY, (String)null);
+                this.addImplicitResolver(Tag.NULL, EMPTY, null);
                 this.addImplicitResolver(new Tag("tag:yaml.org,2002:value"), VALUE, "=");
                 this.addImplicitResolver(Tag.MERGE, MERGE, "<");
             }
