@@ -1,0 +1,40 @@
+name: flutter_asset_literal_test
+description: A new Flutter project.
+version: 1.0.0+1
+environment:
+  sdk: '>=2.1.0 <3.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+flutter:
+  uses-material-design: true
+  assets:
+  - assets/images/png/
+  - assets/images/jpg/
+  - assets/images/big_png/
+  - assets/images/bmp/
+  - assets/images/gif/
+  - assets/images/svg/
+  - assets/images/tiff/
+  - assets/images/webp/
+  - assets/flr/
+  - assets/json/
+  - othor_assets/
+  - asset_in_Lib.png
+  - 3D.JPG
+  - danmaku_on.png
+  - packages/xg_appearance/smoke.png
+
+
+  fonts:
+  - family: DINAlternateBold
+    fonts:
+    - asset: fonts/DINAlternateBold.ttf
+  - family: Cascadia Mono
+    fonts:
+    - asset: fonts/CascadiaMonoRegular.ttf

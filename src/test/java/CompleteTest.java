@@ -3,7 +3,6 @@ import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class CompleteTest extends BasePlatformTestCase {
@@ -26,7 +25,7 @@ public class CompleteTest extends BasePlatformTestCase {
 //      Here we add the assets folder, pubspec.yaml, and other resource files to the editor. you can see the directory
 //      structure of these files under the src/test/testData folder
         myFixture.copyDirectoryToProject("flutter_asset_literal_test", "flutter_asset_literal_test");
-        myFixture.copyDirectoryToProject("xg_appearance-0.1.4", "xg_appearance-0.1.4");
+        myFixture.copyDirectoryToProject("xg_appearance", "xg_appearance");
     }
 
     public void testCompletionNormalAsset() {
