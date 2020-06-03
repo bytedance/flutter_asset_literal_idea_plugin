@@ -21,7 +21,6 @@ repositories {
 }
 
 dependencies {
-    compile group: 'org.apache.xmlgraphics', name: 'batik-transcoder', version: '1.7'
 }
 
 test {
