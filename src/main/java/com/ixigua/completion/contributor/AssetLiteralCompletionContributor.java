@@ -5,6 +5,8 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.patterns.PatternCondition;
+import com.intellij.patterns.PatternConditionPlus;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.util.ProcessingContext;
 import com.ixigua.completion.assets.Asset;
@@ -28,7 +30,8 @@ public class AssetLiteralCompletionContributor extends CompletionContributor {
     public AssetLiteralCompletionContributor() {
         SVGActivator svgActivator = new SVGActivator();
         svgActivator.activate();
-        extend(CompletionType.BASIC, PlatformPatterns.psiElement(DartTokenTypes.REGULAR_STRING_PART), new CompletionProvider<CompletionParameters>() {
+        //We will not process strings in import statements
+        extend(CompletionType.BASIC, PlatformPatterns.and(PlatformPatterns.psiElement(DartTokenTypes.REGULAR_STRING_PART),PlatformPatterns.not(PlatformPatterns.psiElement(DartTokenTypes.REGULAR_STRING_PART).inside(PlatformPatterns.psiElement(DartTokenTypes.IMPORT_STATEMENT)))) , new CompletionProvider<CompletionParameters>() {
 
            @Override
            protected void addCompletions(@NotNull CompletionParameters parameters, @NotNull ProcessingContext context, @NotNull CompletionResultSet result) {

@@ -144,4 +144,12 @@ public class CompleteTest extends BasePlatformTestCase {
         assertTrue(strings.contains("packages/xg_appearance/smoke.png"));
         assertEquals(1, strings.size());
     }
+
+    public void testCompletionStringInsideImport() {
+        myFixture.configureByFiles("flutter_asset_literal_test/lib/CompleteTestDataStringInsideImport.dart");
+        myFixture.complete(CompletionType.BASIC, 1);
+        List<String> strings = myFixture.getLookupElementStrings();
+        assertNotNull(strings);
+        assertEquals(0, strings.size());
+    }
 }
