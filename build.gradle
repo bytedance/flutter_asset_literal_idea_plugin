@@ -30,7 +30,7 @@ test {
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
     version intellijVersion
-    type 'IU'
+    type 'AI'
     plugins "Dart:$dartVersion"
     updateSinceUntilBuild false
 }
@@ -43,6 +43,10 @@ runIde {
 
 patchPluginXml {
     changeNotes """
+    <h1>1.6.0</h1>
+    <ul>
+      <li> Compatible with Android Studio 4.1 </li>
+    </ul>
     <h1>1.5.4</h1>
     <ul>
       <li> We will not process strings in import statements </li>

@@ -147,7 +147,7 @@ IOS_8_FONT_LIST:
     ]]></description>
 
 <!--    copy from Flutter plugin -->
-    <idea-version since-build="191.8026" until-build="193.*"/>
+    <idea-version since-build="193.6911" until-build="203.*"/>
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
