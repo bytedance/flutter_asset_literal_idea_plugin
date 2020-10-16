@@ -11,7 +11,7 @@ publishPlugin {
 }
 
 group 'com.ixigua'
-version '1.5.4'
+version '1.6.0'
 
 sourceCompatibility = 1.8
 
