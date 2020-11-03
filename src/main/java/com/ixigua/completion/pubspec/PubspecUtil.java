@@ -16,18 +16,13 @@ import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
-import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.nodes.*;
 import org.yaml.snakeyaml.representer.Representer;
 import org.yaml.snakeyaml.resolver.Resolver;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class PubspecUtil {
 
@@ -79,7 +74,18 @@ public class PubspecUtil {
     @Nullable
     private static Map<String, Object> loadPubspecYamlInfo(@NotNull String pubspecYamlFileContents) {
 
-        Yaml yaml = new Yaml(new SafeConstructor(), new Representer(), new DumperOptions(), new Resolver() {
+        Yaml yaml = createYaml();
+
+        try {
+            return yaml.load(pubspecYamlFileContents);
+        } catch (Exception var3) {
+            return null;
+        }
+    }
+
+    @NotNull
+    private static Yaml createYaml() {
+        return new Yaml(new SafeConstructor(), new Representer(), new DumperOptions(), new Resolver() {
             protected void addImplicitResolvers() {
                 this.addImplicitResolver(Tag.BOOL, BOOL, "yYnNtTfFoO");
                 this.addImplicitResolver(Tag.NULL, NULL, "~nN\u0000");
@@ -88,12 +94,104 @@ public class PubspecUtil {
                 this.addImplicitResolver(Tag.MERGE, MERGE, "<");
             }
         });
+    }
 
-        try {
-            return yaml.load(pubspecYamlFileContents);
-        } catch (Exception var3) {
-            return null;
+    /**
+     * insert assets into pubspec
+     * if one value in assets is already in pubspec, we will ignore it.
+     *
+     * let's say we have a pubspec like this:
+     * flutter:
+     *   assets:
+     *     - xxxx
+     *
+     * we insert ['xxxx', 'yyyy'], then the pubspec will be:
+     * flutter:
+     *   assets:
+     *     - xxxx
+     *     - yyyy
+     *
+     * @return insert offset
+     * */
+    public static int insertAssets(@NotNull VirtualFile originalPubspec, @NotNull String[] assets, @Nullable String lineSeparator) throws IOException {
+        if (lineSeparator == null) {
+            lineSeparator = System.lineSeparator();
         }
+        final Yaml yaml = createYaml();
+        FileDocumentManager documentManager = FileDocumentManager.getInstance();
+        Document cachedDocument = documentManager.getCachedDocument(originalPubspec);
+        String content;
+        if (cachedDocument != null) {
+            content = cachedDocument.getText();
+        } else {
+            content = VfsUtilCore.loadText(originalPubspec);
+        }
+        StringReader reader = new StringReader(content);
+        Node yamlNode = yaml.compose(reader);
+        if (!(yamlNode instanceof MappingNode)) {
+            reader.close();
+            return -1;
+        }
+        Optional<NodeTuple> flutterNode = ((MappingNode) yamlNode).getValue().stream().filter(pair -> {
+            Node key = pair.getKeyNode();
+            if (!(key instanceof ScalarNode)) {
+                return false;
+            }
+            return "flutter".equals(((ScalarNode) key).getValue());
+        }).findFirst();
+        if (!flutterNode.isPresent()) {
+            return -1;
+        }
+        Node flutterMapping = flutterNode.get().getValueNode();
+        if (!(flutterMapping instanceof MappingNode)) {
+            reader.close();
+            return -1;
+        }
+        Optional<NodeTuple> assetsNode = ((MappingNode) flutterMapping).getValue().stream().filter(pair -> {
+            Node key = pair.getKeyNode();
+            if (!(key instanceof ScalarNode)) {
+                return false;
+            }
+            return "assets".equals(((ScalarNode) key).getValue());
+        }).findFirst();
+        if (!assetsNode.isPresent()) {
+            return -1;
+        }
+        int offset;
+        Set<String> originalAssetsSet = new HashSet<>();
+        Node assetsSeq = assetsNode.get().getValueNode();
+        if (!(assetsSeq instanceof SequenceNode)) {
+            offset = assetsSeq.getEndMark().getIndex();
+        } else {
+            ((SequenceNode) assetsSeq).getValue().forEach(asset -> {
+                if (!(asset instanceof ScalarNode)) {
+                    return;
+                }
+                originalAssetsSet.add(((ScalarNode) asset).getValue());
+            });
+            Node lastAssetNode = ((SequenceNode) assetsSeq).getValue().get(((SequenceNode) assetsSeq).getValue().size() - 1);
+
+            offset = lastAssetNode.getEndMark().getIndex();
+        }
+        reader.close();
+        // why not to use SnakeYAML's Emitter API to edit pubspec:
+        // because Emitter will lost all comments of the original pubspec.
+        StringBuilder sb = new StringBuilder(content);
+        for (String asset :
+                assets) {
+            if (originalAssetsSet.contains(asset)) {
+                continue;
+            }
+            sb.insert(offset, lineSeparator);
+            offset += 1;
+            sb.insert(offset, "    - " + asset);
+            offset += 6 + asset.length();
+        }
+        FileWriter fileWriter = new FileWriter(originalPubspec.getPath());
+        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+        bufferedWriter.write(sb.toString());
+        bufferedWriter.close();
+        return offset;
     }
 
     public static Map<String, VirtualFile> findAllDependentPubspecFiles(@NotNull VirtualFile pubspecYamlFile) {

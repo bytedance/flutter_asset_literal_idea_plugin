@@ -160,5 +160,13 @@ IOS_8_FONT_LIST:
 
     <actions>
         <!-- Add your actions here -->
+        <group id="com.ixigua.completion.sync.ActionGroup" >
+            <action id="com.ixigua.completion.sync.SyncAssetsAction" class="com.ixigua.completion.sync.SyncAssetsAction"
+                    text="Flutter: Sync Assets" description="Register selected assets files or folders to the pubspec.yaml">
+                <!--            <add-to-group group-id="EditorPopupMenu" anchor="first"/>-->
+            </action>
+            <add-to-group group-id="ProjectViewPopupMenu" relative-to-action="CutCopyPasteGroup" anchor="before"/>
+            <separator/>
+        </group>
     </actions>
 </idea-plugin>
