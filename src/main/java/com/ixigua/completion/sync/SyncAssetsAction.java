@@ -67,7 +67,11 @@ public class SyncAssetsAction extends AnAction {
                     list.add(name);
                 }
             } else {
-                list.add(VfsUtilCore.getRelativePath(virtualFile, syncAssetsInfo.projectDir));
+                if (virtualFile.isDirectory()) {
+                    list.add(VfsUtilCore.getRelativePath(virtualFile, syncAssetsInfo.projectDir) + File.separator);
+                } else {
+                    list.add(VfsUtilCore.getRelativePath(virtualFile, syncAssetsInfo.projectDir));
+                }
             }
         }
         String[] assets = list.toArray(new String[0]);
