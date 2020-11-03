@@ -1,6 +1,6 @@
 package com.ixigua.completion.transform;
 
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.ImageUtil;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -38,7 +38,7 @@ public class TransformImage {
         int type = BufferedImage.TYPE_INT_ARGB;
 
 
-        BufferedImage resizedImage = UIUtil.createImage(boundWidth,boundHeight,type);
+        BufferedImage resizedImage = ImageUtil.createImage(boundWidth, boundHeight, type);
         Graphics2D g = resizedImage.createGraphics();
 
         g.setComposite(AlphaComposite.Src);
