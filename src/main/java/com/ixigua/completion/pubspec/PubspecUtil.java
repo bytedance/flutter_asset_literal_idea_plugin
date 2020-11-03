@@ -1,5 +1,6 @@
 package com.ixigua.completion.pubspec;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -7,6 +8,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -28,6 +30,7 @@ public class PubspecUtil {
 
     private static final Key<Pair<Long, Map<String, Object>>> MOD_STAMP_TO_PUBSPEC_NAME = Key.create("MOD_STAMP_TO_PUBSPEC_NAME");
     private static final Logger LOG = Logger.getInstance(PubspecUtil.class);
+    private static final String MOD_REQUESTER = "PubspecUtil";
 
     public static VirtualFile findPubspecYamlFile(@NotNull Project project, @NotNull VirtualFile currentFile) {
         return PubspecYamlUtil.findPubspecYamlFile(project, currentFile);
@@ -111,7 +114,7 @@ public class PubspecUtil {
      *     - xxxx
      *     - yyyy
      *
-     * @return insert offset
+     * @return insert offset, value < 0 means failed.
      * */
     public static int insertAssets(@NotNull VirtualFile originalPubspec, @NotNull String[] assets, @Nullable String lineSeparator) throws IOException {
         if (lineSeparator == null) {
@@ -187,10 +190,15 @@ public class PubspecUtil {
             sb.insert(offset, "    - " + asset);
             offset += 6 + asset.length();
         }
-        FileWriter fileWriter = new FileWriter(originalPubspec.getPath());
-        BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-        bufferedWriter.write(sb.toString());
-        bufferedWriter.close();
+        ApplicationManager.getApplication().runWriteAction((ThrowableComputable<Void, IOException>) () -> {
+            originalPubspec.setWritable(true);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(originalPubspec.getOutputStream(MOD_REQUESTER));
+            BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+            bufferedWriter.write(sb.toString());
+            bufferedWriter.flush();
+            bufferedWriter.close();
+            return null;
+        });
         return offset;
     }
 

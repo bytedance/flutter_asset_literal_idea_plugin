@@ -74,6 +74,9 @@ public class SyncAssetsAction extends AnAction {
         // Modify the pubspec.yaml file.
         try {
             int offset = PubspecUtil.insertAssets(syncAssetsInfo.pubspec, assets, FileDocumentManager.getInstance().getLineSeparator(syncAssetsInfo.pubspec, syncAssetsInfo.project));
+            if (offset < 0) {
+                return;
+            }
             // In order to let users know that we have modified the pubspec, we need to open the pubspec file in editor.
             FileDocumentManager.getInstance().reloadFiles(syncAssetsInfo.pubspec);
             FileEditorManager.getInstance(syncAssetsInfo.project).openTextEditor(
@@ -84,10 +87,8 @@ public class SyncAssetsAction extends AnAction {
                     ),
                     true // request focus to editor
             );
-        } catch (FileNotFoundException fileNotFoundException) {
+        } catch (IOException fileNotFoundException) {
             fileNotFoundException.printStackTrace();
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
         }
     }
 

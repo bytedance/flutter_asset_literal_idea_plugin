@@ -43,6 +43,10 @@ runIde {
 
 patchPluginXml {
     changeNotes """
+    <h1>1.7.0</h1>
+    <ul>
+      <li> Register assets to pubspec with one click </li>
+    </ul>
     <h1>1.6.0</h1>
     <ul>
       <li> Compatible with Android Studio 4.1 </li>
