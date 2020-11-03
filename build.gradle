@@ -11,7 +11,7 @@ publishPlugin {
 }
 
 group 'com.ixigua'
-version '1.7.2'
+version '1.7.3'
 
 sourceCompatibility = 1.8
 
@@ -43,7 +43,7 @@ runIde {
 
 patchPluginXml {
     changeNotes """
-    <h1>1.7.2</h1>
+    <h1>1.7.3</h1>
     <ul>
       <li> bugfix </li>
     </ul>
