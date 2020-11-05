@@ -1,5 +1,6 @@
 package com.ixigua.completion.sync;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -11,18 +12,11 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
 import com.ixigua.completion.pubspec.PubspecUtil;
-import org.jdesktop.swingx.plaf.UIManagerExt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.function.IntFunction;
-import java.util.stream.Stream;
+import java.util.*;
 
 public class SyncAssetsAction extends AnAction {
 
@@ -39,42 +33,14 @@ public class SyncAssetsAction extends AnAction {
     public void actionPerformed(@NotNull AnActionEvent e) {
         SyncAssetsInfo syncAssetsInfo = getInfoFromEvent(e);
         assert syncAssetsInfo != null;
-        Stream<String> files = syncAssetsInfo.selectedFileOrFolder.stream().map(virtualFile -> VfsUtilCore.getRelativePath(virtualFile, syncAssetsInfo.projectDir));
         // If user select a folder, we get all its children, and write them into pubspec.
         Set<VirtualFile> allFiles = new HashSet<>();
         for (VirtualFile file :
                 syncAssetsInfo.selectedFileOrFolder) {
             allFiles.addAll(expandAssetFile(file));
         }
-        List<String> list = new ArrayList<>();
         VirtualFile lib = syncAssetsInfo.projectDir.findChild("lib");
-        for (VirtualFile virtualFile : allFiles) {
-            if (lib != null && VfsUtilCore.isAncestor(lib, virtualFile, false)) {
-                String name = virtualFile.getName();
-                if ("lib".equals(name)) {
-                    for (VirtualFile fileInLib :
-                            virtualFile.getChildren()) {
-                        String ext = fileInLib.getExtension();
-                        if (ext != null && ext.toLowerCase().equals("dart")) {
-                            continue;
-                        }
-                        if (fileInLib.isDirectory()) {
-                            continue;
-                        }
-                        list.add(fileInLib.getName());
-                    }
-                } else if (lib.findChild(name) != null && !virtualFile.isDirectory()) {
-                    list.add(name);
-                }
-            } else {
-                if (virtualFile.isDirectory()) {
-                    list.add(VfsUtilCore.getRelativePath(virtualFile, syncAssetsInfo.projectDir) + File.separator);
-                } else {
-                    list.add(VfsUtilCore.getRelativePath(virtualFile, syncAssetsInfo.projectDir));
-                }
-            }
-        }
-        String[] assets = list.toArray(new String[0]);
+        String[] assets = assetNameFromFiles(allFiles, lib, syncAssetsInfo.projectDir);
         // Modify the pubspec.yaml file.
         try {
             int offset = PubspecUtil.insertAssets(syncAssetsInfo.pubspec, assets, FileDocumentManager.getInstance().getLineSeparator(syncAssetsInfo.pubspec, syncAssetsInfo.project));
@@ -82,17 +48,9 @@ public class SyncAssetsAction extends AnAction {
                 return;
             }
             // In order to let users know that we have modified the pubspec, we need to open the pubspec file in editor.
-            FileDocumentManager.getInstance().reloadFiles(syncAssetsInfo.pubspec);
-            FileEditorManager.getInstance(syncAssetsInfo.project).openTextEditor(
-                    new OpenFileDescriptor(
-                            syncAssetsInfo.project,
-                            syncAssetsInfo.pubspec,
-                            offset
-                    ),
-                    true // request focus to editor
-            );
-        } catch (IOException fileNotFoundException) {
-            fileNotFoundException.printStackTrace();
+            openPubspecInEditor(syncAssetsInfo.pubspec, syncAssetsInfo.project, offset);
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -115,7 +73,7 @@ public class SyncAssetsAction extends AnAction {
     }
 
     @NotNull
-    private ArrayList<VirtualFile> expandAssetFile(@NotNull VirtualFile file) {
+    public static ArrayList<VirtualFile> expandAssetFile(@NotNull VirtualFile file) {
         ArrayList<VirtualFile> ret = new ArrayList<>();
         if (!file.exists()) {
             return ret;
@@ -125,7 +83,7 @@ public class SyncAssetsAction extends AnAction {
         }
         if (!file.isDirectory()) {
             String ext = file.getExtension();
-            if (ext != null && !ext.toLowerCase().equals("dart")) {
+            if (ext == null || !ext.toLowerCase().equals("dart")) {
                 ret.add(file);
             }
             return ret;
@@ -147,5 +105,54 @@ public class SyncAssetsAction extends AnAction {
             }
         });
         return ret;
+    }
+
+    public static List<String> assetNameFromFile(@NotNull VirtualFile file, VirtualFile lib, @NotNull VirtualFile projectDir) {
+        List<String> list = new ArrayList<>();
+        if (lib != null && VfsUtilCore.isAncestor(lib, file, false)) {
+            String name = file.getName();
+            if ("lib".equals(name)) {
+                for (VirtualFile fileInLib :
+                        file.getChildren()) {
+                    String ext = fileInLib.getExtension();
+                    if (ext != null && ext.toLowerCase().equals("dart")) {
+                        continue;
+                    }
+                    if (fileInLib.isDirectory()) {
+                        continue;
+                    }
+                    list.add(fileInLib.getName());
+                }
+            } else if (lib.findChild(name) != null && !file.isDirectory()) {
+                list.add(name);
+            }
+        } else {
+            if (file.isDirectory()) {
+                list.add(VfsUtilCore.getRelativePath(file, projectDir) + File.separator);
+            } else {
+                list.add(VfsUtilCore.getRelativePath(file, projectDir));
+            }
+        }
+        return list;
+    }
+
+    private static String[] assetNameFromFiles(@NotNull Iterable<VirtualFile> files, VirtualFile lib, @NotNull VirtualFile projectDir) {
+        List<String> list = new ArrayList<>();
+        for (VirtualFile virtualFile : files) {
+            list.addAll(assetNameFromFile(virtualFile, lib, projectDir));
+        }
+        return list.toArray(new String[0]);
+    }
+
+    private static void openPubspecInEditor(@NotNull VirtualFile pubspec, @NotNull Project project, int offset) {
+        FileDocumentManager.getInstance().reloadFiles(pubspec);
+        FileEditorManager.getInstance(project).openTextEditor(
+                new OpenFileDescriptor(
+                        project,
+                        pubspec,
+                        offset
+                ),
+                true // request focus to editor
+        );
     }
 }

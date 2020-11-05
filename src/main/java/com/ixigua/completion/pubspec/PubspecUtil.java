@@ -120,20 +120,44 @@ public class PubspecUtil {
         if (lineSeparator == null) {
             lineSeparator = System.lineSeparator();
         }
-        final Yaml yaml = createYaml();
+        String content = readFileContent(originalPubspec);
+        Pair<Integer, String> edited = insertAssets(content, assets, lineSeparator);
+        writeFile(originalPubspec, edited.second);
+        return edited.first;
+    }
+
+    private static String readFileContent(@NotNull VirtualFile file) throws IOException {
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
-        Document cachedDocument = documentManager.getCachedDocument(originalPubspec);
+        Document cachedDocument = documentManager.getCachedDocument(file);
         String content;
         if (cachedDocument != null) {
             content = cachedDocument.getText();
         } else {
-            content = VfsUtilCore.loadText(originalPubspec);
+            content = VfsUtilCore.loadText(file);
         }
-        StringReader reader = new StringReader(content);
+        return content;
+    }
+
+    private static void writeFile(@NotNull VirtualFile file, String content) throws IOException {
+        ApplicationManager.getApplication().runWriteAction((ThrowableComputable<Void, IOException>) () -> {
+            file.setWritable(true);
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(file.getOutputStream(MOD_REQUESTER));
+            BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
+            bufferedWriter.write(content);
+            bufferedWriter.flush();
+            bufferedWriter.close();
+            return null;
+        });
+    }
+
+    @NotNull
+    public static Pair<Integer, String> insertAssets(@NotNull String pubspecContent, @NotNull String[] assets, @NotNull String lineSeparator) {
+        StringReader reader = new StringReader(pubspecContent);
+        final Yaml yaml = createYaml();
         Node yamlNode = yaml.compose(reader);
         if (!(yamlNode instanceof MappingNode)) {
             reader.close();
-            return -1;
+            throw new IllegalStateException("pubspecContent MUST be mapping");
         }
         Optional<NodeTuple> flutterNode = ((MappingNode) yamlNode).getValue().stream().filter(pair -> {
             Node key = pair.getKeyNode();
@@ -143,12 +167,12 @@ public class PubspecUtil {
             return "flutter".equals(((ScalarNode) key).getValue());
         }).findFirst();
         if (!flutterNode.isPresent()) {
-            return -1;
+            throw new IllegalStateException("flutter section is missing");
         }
         Node flutterMapping = flutterNode.get().getValueNode();
         if (!(flutterMapping instanceof MappingNode)) {
             reader.close();
-            return -1;
+            throw new IllegalStateException("flutter section content is missing");
         }
         Optional<NodeTuple> assetsNode = ((MappingNode) flutterMapping).getValue().stream().filter(pair -> {
             Node key = pair.getKeyNode();
@@ -158,7 +182,7 @@ public class PubspecUtil {
             return "assets".equals(((ScalarNode) key).getValue());
         }).findFirst();
         if (!assetsNode.isPresent()) {
-            return -1;
+            throw new IllegalStateException("assets section is missing");
         }
         int offset;
         Set<String> originalAssetsSet = new HashSet<>();
@@ -179,7 +203,7 @@ public class PubspecUtil {
         reader.close();
         // why not to use SnakeYAML's Emitter API to edit pubspec:
         // because Emitter will lost all comments of the original pubspec.
-        StringBuilder sb = new StringBuilder(content);
+        StringBuilder sb = new StringBuilder(pubspecContent);
         for (String asset :
                 assets) {
             if (originalAssetsSet.contains(asset)) {
@@ -190,16 +214,7 @@ public class PubspecUtil {
             sb.insert(offset, "    - " + asset);
             offset += 6 + asset.length();
         }
-        ApplicationManager.getApplication().runWriteAction((ThrowableComputable<Void, IOException>) () -> {
-            originalPubspec.setWritable(true);
-            OutputStreamWriter outputStreamWriter = new OutputStreamWriter(originalPubspec.getOutputStream(MOD_REQUESTER));
-            BufferedWriter bufferedWriter = new BufferedWriter(outputStreamWriter);
-            bufferedWriter.write(sb.toString());
-            bufferedWriter.flush();
-            bufferedWriter.close();
-            return null;
-        });
-        return offset;
+        return new Pair<>(offset, sb.toString());
     }
 
     public static Map<String, VirtualFile> findAllDependentPubspecFiles(@NotNull VirtualFile pubspecYamlFile) {
