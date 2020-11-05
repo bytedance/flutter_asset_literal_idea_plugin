@@ -1,5 +1,4 @@
 import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.exceptionCases.AbstractExceptionCase;
 import com.intellij.testFramework.fixtures.BasePlatformTestCase;
 import com.ixigua.completion.pubspec.PubspecUtil;
