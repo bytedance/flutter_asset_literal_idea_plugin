@@ -3,6 +3,10 @@ Automatically help you complete the path of assets when you type a Dart string
 
 ![demo](https://i.imgur.com/Ssc3eMJ.gif)
 
+## Register assets to pubspec with one click!
+
+![demo](https://i.imgur.com/tM6yqKb.gif)
+
 ### Support preview of multiple image formats such as png, svg, jpg, gif and more
 
 ### Support for assets declared in pubspec.yaml
