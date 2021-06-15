@@ -8,6 +8,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
@@ -128,7 +129,9 @@ public class SyncAssetsAction extends AnAction {
             }
         } else {
             if (file.isDirectory()) {
-                list.add(VfsUtilCore.getRelativePath(file, projectDir) + File.separator);
+                // Here you can only use "/" instead of File.seperator, because the latter is "\" on Windows systems and
+                // cannot be used as a file path separator in Flutter pubspec
+                list.add(VfsUtilCore.getRelativePath(file, projectDir) + "/");
             } else {
                 list.add(VfsUtilCore.getRelativePath(file, projectDir));
             }
