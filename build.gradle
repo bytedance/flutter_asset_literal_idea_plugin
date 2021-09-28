@@ -11,7 +11,7 @@ publishPlugin {
 }
 
 group 'com.ixigua'
-version '1.7.4'
+version '1.7.5'
 
 sourceCompatibility = 1.8
 
@@ -43,6 +43,10 @@ runIde {
 
 patchPluginXml {
     changeNotes """
+    <h1>1.7.5</h1>
+    <ul>
+      <li> bugfix: Sync Assets in sub-project  </li>
+    </ul>
     <h1>1.7.4</h1>
     <ul>
       <li> bugfix </li>
