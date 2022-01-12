@@ -70,7 +70,7 @@ public class SyncAssetsTest extends BasePlatformTestCase {
     public void testAssetNameFromFile_fileInLib() {
         VirtualFile file = project.findFileByRelativePath("lib/3D.JPG");
         VirtualFile lib = project.findFileByRelativePath("lib");
-        List<String> ret = SyncAssetsAction.assetNameFromFile(Objects.requireNonNull(file), lib, project);
+        List<String> ret = SyncAssetsAction.assetNameFromFile(Objects.requireNonNull(file), lib);
         assertSize(1, ret);
         assertContainsElements(ret, "3D.JPG");
     }
@@ -78,13 +78,13 @@ public class SyncAssetsTest extends BasePlatformTestCase {
     public void testAssetNameFromFile_dirInLib() {
         VirtualFile file = project.findFileByRelativePath("lib/d1");
         VirtualFile lib = project.findFileByRelativePath("lib");
-        List<String> ret = SyncAssetsAction.assetNameFromFile(Objects.requireNonNull(file), lib, project);
+        List<String> ret = SyncAssetsAction.assetNameFromFile(Objects.requireNonNull(file), lib);
         assertEmpty(ret);
     }
 
     public void testAssetNameFromFile_lib() {
         VirtualFile lib = project.findFileByRelativePath("lib");
-        List<String> ret = SyncAssetsAction.assetNameFromFile(Objects.requireNonNull(lib), lib, project);
+        List<String> ret = SyncAssetsAction.assetNameFromFile(Objects.requireNonNull(lib), lib);
         assertSize(3, ret);
         assertContainsElements(ret, "3D.JPG","asset_in_Lib.png","danmaku_on.png");
     }
@@ -92,7 +92,7 @@ public class SyncAssetsTest extends BasePlatformTestCase {
     public void testAssetNameFromFile_dirNotInLib() {
         VirtualFile file = project.findFileByRelativePath("assets");
         VirtualFile lib = project.findFileByRelativePath("lib");
-        List<String> ret = SyncAssetsAction.assetNameFromFile(Objects.requireNonNull(file), lib, project);
+        List<String> ret = SyncAssetsAction.assetNameFromFile(Objects.requireNonNull(file), lib);
         assertSize(1, ret);
         assertContainsElements(ret, "assets/");
     }
@@ -100,7 +100,7 @@ public class SyncAssetsTest extends BasePlatformTestCase {
     public void testAssetNameFromFile_fileNotInLib() {
         VirtualFile file = project.findFileByRelativePath("assets/d1/a");
         VirtualFile lib = project.findFileByRelativePath("lib");
-        List<String> ret = SyncAssetsAction.assetNameFromFile(Objects.requireNonNull(file), lib, project);
+        List<String> ret = SyncAssetsAction.assetNameFromFile(Objects.requireNonNull(file), lib);
         assertSize(1, ret);
         assertContainsElements(ret, "assets/d1/a");
     }

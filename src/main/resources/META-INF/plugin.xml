@@ -151,8 +151,6 @@ IOS_8_FONT_LIST:
 <h3><a href="https://github.com/bytedance/flutter_asset_literal_idea_plugin">Submit Issues</a></h3>
     ]]></description>
 
-<!--    copy from Flutter plugin -->
-    <idea-version since-build="193.6911" until-build="203.*"/>
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
