@@ -10,7 +10,7 @@ publishPlugin {
 }
 
 group 'com.ixigua'
-version '1.7.7'
+version '1.7.8'
 
 java {
     sourceCompatibility = JavaVersion.toVersion(javaVersion)
@@ -48,10 +48,10 @@ runIde {
 
 patchPluginXml {
     version = project.version
-    sinceBuild = '203.6682.168'
+    sinceBuild = '222.3244.4'
     untilBuild = '222.*'
     changeNotes = """
-    <h1>1.7.7</h1>
+    <h1>1.7.8</h1>
     <ul>
       <li> Adapt Idea 222 version </li>
       <li> Update 'org.jetbrains.intellij' to 1.9.0 </li>
